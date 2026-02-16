@@ -21,7 +21,8 @@ class MapboxGeocodingService {
   /// [proximity] - Optional coordinates to bias results towards
   /// [limit] - Maximum number of results (default: 5)
   /// [useSessionToken] - Use session token for autocomplete (default: true)
-  Future<List<SearchResult>> searchLocations(
+  /// Get search suggestions from Mapbox Search Box API
+  Future<List<SearchResult>> getSuggestions(
     String query, {
     LatLng? proximity,
     int limit = 5,
@@ -30,34 +31,67 @@ class MapboxGeocodingService {
     if (query.trim().isEmpty) return [];
 
     try {
-      // Rate limiting: wait at least 100ms between requests
       await _enforceRateLimit();
 
-      // Generate or reuse session token
       if (useSessionToken) {
         _sessionToken ??= _generateSessionToken();
       }
 
-      // Build URL
       final encodedQuery = Uri.encodeComponent(query);
       final params = <String, String>{
         'access_token': MapboxConfig.accessToken,
         'limit': limit.toString(),
-        'autocomplete': 'true',
-        'fuzzyMatch': 'true', // Enable fuzzy matching for typos
+        'types': 'poi,address', // Focus on POIs and addresses
+        'language': 'en',
       };
 
-      // Add session token if using autocomplete
       if (useSessionToken && _sessionToken != null) {
         params['session_token'] = _sessionToken!;
       }
 
-      // Add proximity bias if provided
       if (proximity != null) {
         params['proximity'] = '${proximity.longitude},${proximity.latitude}';
       }
 
-      final uri = Uri.parse('${MapboxConfig.geocodingApiUrl}/$encodedQuery.json')
+      final uri = Uri.parse('${MapboxConfig.searchBoxApiUrl}/suggest')
+          .replace(queryParameters: {'q': query, ...params});
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final suggestions = data['suggestions'] as List<dynamic>;
+
+        return suggestions.map((suggestion) {
+          return SearchResult.fromMapboxSuggestion(
+            suggestion as Map<String, dynamic>,
+            1.0,
+          );
+        }).toList();
+      } else {
+        debugPrint('Mapbox Search Box API error: ${response.statusCode}');
+        debugPrint('Response: ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error getting Mapbox suggestions: $e');
+      return [];
+    }
+  }
+
+  /// Retrieve full location details (coordinates) for a result
+  Future<SearchResult?> retrieveLocation(SearchResult result) async {
+    if (result.mapboxId == null) return result;
+
+    try {
+      await _enforceRateLimit();
+
+      final params = <String, String>{
+        'access_token': MapboxConfig.accessToken,
+        'session_token': _sessionToken ?? '',
+      };
+
+      final uri = Uri.parse('${MapboxConfig.searchBoxApiUrl}/retrieve/${result.mapboxId}')
           .replace(queryParameters: params);
 
       final response = await http.get(uri);
@@ -65,22 +99,48 @@ class MapboxGeocodingService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final features = data['features'] as List<dynamic>;
-
-        return features.map((feature) {
-          return SearchResult.fromMapbox(
-            feature as Map<String, dynamic>,
-            1.0, // Mapbox returns sorted results, keep original score
-          );
-        }).toList();
-      } else {
-        debugPrint('Mapbox Geocoding API error: ${response.statusCode}');
-        debugPrint('Response: ${response.body}');
-        return [];
+        
+        if (features.isNotEmpty) {
+          final feature = features[0] as Map<String, dynamic>;
+          // Update the existing result with coordinates
+          final geometry = feature['geometry'] as Map<String, dynamic>?;
+          final coordinates = geometry?['coordinates'] as List<dynamic>?;
+          
+          if (coordinates != null && coordinates.length >= 2) {
+             return SearchResult(
+              displayName: result.displayName,
+              subtitle: result.subtitle,
+              latitude: (coordinates[1] as num).toDouble(),
+              longitude: (coordinates[0] as num).toDouble(),
+              source: result.source,
+              matchScore: result.matchScore,
+              mapboxId: result.mapboxId,
+              osmData: feature,
+            );
+          }
+        }
       }
+      return null;
     } catch (e) {
-      debugPrint('Error searching Mapbox Geocoding: $e');
-      return [];
+      debugPrint('Error retrieving Mapbox location: $e');
+      return null;
     }
+  }
+
+  /// Forward geocoding: search for locations by query
+  /// NOW WRAPS getSuggestions for backward compatibility
+  Future<List<SearchResult>> searchLocations(
+    String query, {
+    LatLng? proximity,
+    int limit = 5,
+    bool useSessionToken = true,
+  }) async {
+    return getSuggestions(
+      query,
+      proximity: proximity,
+      limit: limit,
+      useSessionToken: useSessionToken,
+    );
   }
 
   /// Reverse geocoding: get location details from coordinates

@@ -1,8 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Mapbox configuration and API keys
 class MapboxConfig {
   /// Mapbox public access token
-  static const String accessToken = 
-      'pk.eyJ1Ijoicm9ueW11bmRhY2thbCIsImEiOiJjbWxleHA3NGMxbzNmM2RxdXRmaHR3ZWJjIn0.pGYdeRQ198FLfTlghD2J_A';
+  static String get accessToken => dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
 
   /// Mapbox tile URL templates for different styles
   /// Using @2x tiles (512px) which work better with flutter_map
@@ -21,6 +22,10 @@ class MapboxConfig {
   /// Mapbox Geocoding API base URL
   static const String geocodingApiUrl =
       'https://api.mapbox.com/geocoding/v5/mapbox.places';
+
+  /// Mapbox Search Box API base URL
+  static const String searchBoxApiUrl =
+      'https://api.mapbox.com/search/searchbox/v1';
 
   /// Attribution text (required by Mapbox TOS)
   static const String attribution = '© Mapbox © OpenStreetMap';
