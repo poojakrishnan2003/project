@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/services/search_service.dart';
 import '../../../models/search_result_model.dart';
 
@@ -185,10 +186,37 @@ class LocationSearchDelegate extends SearchDelegate<SearchResult?> {
           : null,
       trailing: _buildMatchScoreIndicator(result.matchScore),
       onTap: () async {
-        // Save to recent searches
-        await _saveRecentSearch(result.displayName);
-        // Return the selected result
-        close(context, result);
+        // Show loading indicator if resolution is needed
+        if (result.source == SearchResultSource.mapbox && result.mapboxId != null) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(child: CircularProgressIndicator()),
+          );
+
+          try {
+            final resolvedResult = await _searchService.resolveLocation(result);
+            Navigator.pop(context); // Dismiss loading
+
+            if (resolvedResult != null) {
+              await _saveRecentSearch(resolvedResult.displayName);
+              close(context, resolvedResult);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not get location details')),
+              );
+            }
+          } catch (e) {
+            Navigator.pop(context); // Dismiss loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error resolving location')),
+            );
+          }
+        } else {
+          // Firestore results/legacy results
+          await _saveRecentSearch(result.displayName);
+          close(context, result);
+        }
       },
     );
   }
@@ -307,9 +335,37 @@ class LocationSearchDelegate extends SearchDelegate<SearchResult?> {
     // Set up new debounce timer (300ms delay)
     _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
       try {
+        LatLng? searchLocation = userLocation;
+
+        // If user location is not provided, try to get it
+        if (searchLocation == null) {
+          try {
+            // Check if service is enabled and permission granted before fetching
+            // We use a small timeout to avoid blocking search too long
+            final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+            if (serviceEnabled) {
+              LocationPermission permission = await Geolocator.checkPermission();
+              if (permission == LocationPermission.denied) {
+                permission = await Geolocator.requestPermission();
+              }
+              
+              if (permission == LocationPermission.whileInUse || 
+                  permission == LocationPermission.always) {
+                 final position = await Geolocator.getCurrentPosition(
+                   timeLimit: const Duration(seconds: 2),
+                 );
+                 searchLocation = LatLng(position.latitude, position.longitude);
+              }
+            }
+          } catch (e) {
+            debugPrint('Error fetching location for search: $e');
+            // Continue without location
+          }
+        }
+
         final results = await _searchService.search(
           searchQuery,
-          userLocation: userLocation,
+          userLocation: searchLocation,
           radiusKm: searchRadiusKm,
         );
         _lastQuery = searchQuery;

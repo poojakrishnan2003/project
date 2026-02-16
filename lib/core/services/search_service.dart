@@ -27,7 +27,7 @@ class SearchService {
       // Search both sources in parallel
       final results = await Future.wait([
         _searchMapbox(query, userLocation),
-        _searchFirestore(query),
+        _searchFirestore(query, userLocation),
       ]);
 
       final mapboxResults = results[0];
@@ -63,9 +63,16 @@ class SearchService {
   }
 
   /// Search Firestore user-added locations
-  Future<List<SearchResult>> _searchFirestore(String query) async {
+  Future<List<SearchResult>> _searchFirestore(
+    String query,
+    LatLng? userLocation,
+  ) async {
     try {
-      final locations = await _locationService.searchApprovedLocations(query);
+      final locations = await _locationService.searchApprovedLocations(
+        query,
+        userLat: userLocation?.latitude,
+        userLng: userLocation?.longitude,
+      );
       
       return locations.map((location) {
         return SearchResult.fromFirestore(location, 1.0);
@@ -73,6 +80,24 @@ class SearchService {
     } catch (e) {
       debugPrint('Error searching Firestore: $e');
       return [];
+    }
+  }
+
+  /// Resolve full details for a lazy-loaded result (Mapbox Search Box API)
+  Future<SearchResult?> resolveLocation(SearchResult result) async {
+    // Only Mapbox results need resolution
+    if (result.source != SearchResultSource.mapbox) return result;
+    
+    // If it already has coordinates, return as is (unless it's a specific requirement to refresh)
+    // But Search Box API suggestions come with 0.0, so checking that might be enough if we trust 0.0 is invalid.
+    // Better to check mapboxId.
+    if (result.mapboxId == null) return result;
+
+    try {
+      return await _mapboxService.retrieveLocation(result);
+    } catch (e) {
+      debugPrint('Error resolving location: $e');
+      return null;
     }
   }
 

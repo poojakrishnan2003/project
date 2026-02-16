@@ -10,6 +10,7 @@ class SearchResult {
   final double matchScore; // Fuzzy match score (0.0 - 1.0)
   final LocationModel? firestoreLocation; // If from Firestore
   final Map<String, dynamic>? osmData; // If from OSM
+  final String? mapboxId; // For Mapbox Search Box API lazy loading
 
   const SearchResult({
     required this.displayName,
@@ -20,6 +21,7 @@ class SearchResult {
     this.matchScore = 1.0,
     this.firestoreLocation,
     this.osmData,
+    this.mapboxId,
   });
 
   /// Create from OpenStreetMap result
@@ -74,6 +76,26 @@ class SearchResult {
       source: SearchResultSource.mapbox,
       matchScore: matchScore,
       osmData: mapboxFeature, // Store for reference
+    );
+  }
+
+  /// Create from Mapbox Search Box API suggestion
+  factory SearchResult.fromMapboxSuggestion(
+    Map<String, dynamic> suggestion,
+    double matchScore,
+  ) {
+    return SearchResult(
+      displayName: suggestion['name']?.toString() ?? 'Unknown',
+      subtitle: suggestion['context'] != null 
+          ? (suggestion['context'] as Map<String, dynamic>)['address']?.toString() 
+              ?? suggestion['place_formatted']?.toString()
+          : suggestion['place_formatted']?.toString(),
+      latitude: 0.0, // Lazy loaded
+      longitude: 0.0, // Lazy loaded
+      source: SearchResultSource.mapbox,
+      matchScore: matchScore,
+      mapboxId: suggestion['mapbox_id']?.toString(),
+      osmData: suggestion, 
     );
   }
 }
