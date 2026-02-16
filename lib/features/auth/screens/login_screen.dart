@@ -13,14 +13,15 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // Login form
   final _loginFormKey = GlobalKey<FormState>();
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
-  
+
   // Signup form
   final _signupFormKey = GlobalKey<FormState>();
   final _signupNameController = TextEditingController();
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _signupPhoneController = TextEditingController();
   final _signupPasswordController = TextEditingController();
   final _signupConfirmPasswordController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   @override
@@ -64,10 +65,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (!mounted) return;
 
       final email = credential.user?.email;
-      final isAdmin = email != null && email.trim().toLowerCase() == 'admin@roamly.com';
-      
+      final isAdmin =
+          email != null && email.trim().toLowerCase() == 'admin@roamly.com';
+
       if (!mounted) return;
-      
+
       debugPrint('LOGIN SUCCESS: $email (Admin: $isAdmin)');
 
       if (isAdmin) {
@@ -106,10 +108,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     try {
       // Create Firebase Auth account
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _signupEmailController.text.trim(),
-        password: _signupPasswordController.text,
-      );
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _signupEmailController.text.trim(),
+            password: _signupPasswordController.text,
+          );
 
       if (!mounted) return;
 
@@ -139,19 +142,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       String message = e.message ?? 'Registration failed';
-      
+
       // Provide user-friendly messages
       if (e.code == 'email-already-in-use') {
         message = 'This email is already registered. Please login instead.';
       } else if (e.code == 'weak-password') {
         message = 'Password is too weak. Use at least 6 characters.';
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     } catch (e) {
       if (!mounted) return;
@@ -178,10 +178,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildLoginTab(),
-          _buildSignupTab(),
-        ],
+        children: [_buildLoginTab(), _buildSignupTab()],
       ),
     );
   }
@@ -211,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _loginEmailController,
                 keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
@@ -226,6 +224,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _loginPasswordController,
                 obscureText: true,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -236,6 +235,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   if (value.length < 6) return 'Min 6 chars';
                   return null;
                 },
+                onFieldSubmitted: (_) => _handleLogin(),
               ),
               const SizedBox(height: 24),
               FilledButton(
@@ -279,6 +279,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _signupNameController,
                 textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Full Name',
                   border: OutlineInputBorder(),
@@ -293,6 +294,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _signupEmailController,
                 keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
@@ -308,6 +310,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _signupPhoneController,
                 keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Phone Number',
                   border: OutlineInputBorder(),
@@ -323,6 +326,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _signupPasswordController,
                 obscureText: true,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -339,6 +343,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               TextFormField(
                 controller: _signupConfirmPasswordController,
                 obscureText: true,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Confirm Password',
                   border: OutlineInputBorder(),
@@ -351,6 +356,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   }
                   return null;
                 },
+                onFieldSubmitted: (_) => _handleSignup(),
               ),
               const SizedBox(height: 24),
               FilledButton(

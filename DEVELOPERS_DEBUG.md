@@ -49,6 +49,13 @@ Roamly is a travel companion app that allows users to discover and share travel 
 }
 ```
 
+#### Firestore Indexes
+The "Find Companion" feature requires a composite index for searching:
+- **Collection**: `users`
+- **Fields**: `isDiscoverable` (Ascending), `name` (Ascending)
+- **Status**: Required for `searchUsers` query to filter by discoverability and sort by name simultaneously.
+- **Creation**: Click the link provided in the debug console error or create manually in Firebase Console.
+
 ---
 
 ## Testing Credentials

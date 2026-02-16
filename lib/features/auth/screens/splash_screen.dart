@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:roamly/core/core.dart';
 
 /// Splash screen shown during app initialization
@@ -38,18 +39,32 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-    _navigateToLogin();
+    _checkAuthAndNavigate();
   }
 
-  void _navigateToLogin() {
-    Future.delayed(
-      Duration(seconds: AppConstants.splashDuration),
-      () {
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/login');
+  void _checkAuthAndNavigate() {
+    Future.delayed(Duration(seconds: AppConstants.splashDuration), () async {
+      if (!mounted) return;
+
+      // Check if user is already logged in
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        // Not logged in, go to login screen
+        Navigator.of(context).pushReplacementNamed('/login');
+      } else {
+        // User is logged in, check if admin
+        final email = currentUser.email;
+        final isAdmin =
+            email != null && email.trim().toLowerCase() == 'admin@roamly.com';
+
+        if (isAdmin) {
+          Navigator.of(context).pushReplacementNamed('/admin');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/home');
         }
-      },
-    );
+      }
+    });
   }
 
   @override
