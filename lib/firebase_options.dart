@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -40,48 +41,47 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBVEstJHjdyGQUL0OMORp-zRrRp0y40OBA',
-    appId: '1:736425037332:web:3ee96ad17e8468dd48a101',
-    messagingSenderId: '736425037332',
-    projectId: 'roamly-78bbb',
-    authDomain: 'roamly-78bbb.firebaseapp.com',
-    storageBucket: 'roamly-78bbb.firebasestorage.app',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY']!,
+    appId: dotenv.env['FIREBASE_WEB_APP_ID']!,
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    authDomain: dotenv.env['FIREBASE_WEB_AUTH_DOMAIN']!,
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAf1-0edTzOtO39wGqc5KjASTXS9EROqdI',
-    appId: '1:736425037332:android:3869b4f1effe475e48a101',
-    messagingSenderId: '736425037332',
-    projectId: 'roamly-78bbb',
-    storageBucket: 'roamly-78bbb.firebasestorage.app',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY']!,
+    appId: dotenv.env['FIREBASE_ANDROID_APP_ID']!,
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBI2Nt99RSP2Se2xrsOavU8KLMlHPSupY0',
-    appId: '1:736425037332:ios:a0d88359ef44d77348a101',
-    messagingSenderId: '736425037332',
-    projectId: 'roamly-78bbb',
-    storageBucket: 'roamly-78bbb.firebasestorage.app',
-    iosBundleId: 'com.example.roamly',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY']!,
+    appId: dotenv.env['FIREBASE_IOS_APP_ID']!,
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBI2Nt99RSP2Se2xrsOavU8KLMlHPSupY0',
-    appId: '1:736425037332:ios:a0d88359ef44d77348a101',
-    messagingSenderId: '736425037332',
-    projectId: 'roamly-78bbb',
-    storageBucket: 'roamly-78bbb.firebasestorage.app',
-    iosBundleId: 'com.example.roamly',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY']!,
+    appId: dotenv.env['FIREBASE_IOS_APP_ID']!,
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBVEstJHjdyGQUL0OMORp-zRrRp0y40OBA',
-    appId: '1:736425037332:web:367b17cce1e8e3f648a101',
-    messagingSenderId: '736425037332',
-    projectId: 'roamly-78bbb',
-    authDomain: 'roamly-78bbb.firebaseapp.com',
-    storageBucket: 'roamly-78bbb.firebasestorage.app',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WINDOWS_API_KEY']!,
+    appId: dotenv.env['FIREBASE_WINDOWS_APP_ID']!,
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    authDomain: dotenv.env['FIREBASE_WINDOWS_AUTH_DOMAIN']!,
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
   );
-
 }
