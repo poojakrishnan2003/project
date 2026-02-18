@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roamly/core/services/google_auth_service.dart';
 import 'package:roamly/features/admin/screens/admin_dashboard.dart';
 import 'package:roamly/features/home/screens/home_screen.dart';
 import 'package:roamly/models/user_profile_model.dart';
@@ -172,6 +173,58 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  // ───────────────────── Google Sign‑In ─────────────────────
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final googleAuthService = GoogleAuthService();
+      final credential = await googleAuthService.signInWithGoogle();
+
+      if (credential == null) {
+        // User cancelled
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      if (!mounted) return;
+
+      final email = credential.user?.email;
+      final isAdmin =
+          email != null && email.trim().toLowerCase() == 'admin@roamly.com';
+
+      if (!mounted) return;
+      debugPrint('GOOGLE SIGN-IN SUCCESS: $email (Admin: $isAdmin)');
+
+      if (isAdmin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Google sign-in failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   // ───────────────────── Navigation helpers ─────────────────────
 
   void _goTo(_ScreenState s) => setState(() => _screen = s);
@@ -230,6 +283,8 @@ class _LoginScreenState extends State<LoginScreen>
           key: const ValueKey('welcome'),
           onGetStarted: () => _goTo(_ScreenState.signUp),
           onSignIn: () => _goTo(_ScreenState.signIn),
+          onGoogleSignIn: _handleGoogleSignIn,
+          isLoading: _isLoading,
         );
       case _ScreenState.signIn:
         return _SignInContent(
@@ -242,6 +297,7 @@ class _LoginScreenState extends State<LoginScreen>
           onTogglePassword: () =>
               setState(() => _obscurePassword = !_obscurePassword),
           onLogin: _handleLogin,
+          onGoogleSignIn: _handleGoogleSignIn,
           onBack: () => _goTo(_ScreenState.welcome),
           onGoToSignUp: () => _goTo(_ScreenState.signUp),
         );
@@ -264,6 +320,7 @@ class _LoginScreenState extends State<LoginScreen>
               setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
           onToggleTerms: (v) => setState(() => _agreedToTerms = v ?? false),
           onSignUp: _handleSignup,
+          onGoogleSignIn: _handleGoogleSignIn,
           onBack: () => _goTo(_ScreenState.welcome),
           onGoToSignIn: () => _goTo(_ScreenState.signIn),
         );
@@ -278,11 +335,15 @@ class _LoginScreenState extends State<LoginScreen>
 class _WelcomeContent extends StatelessWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onSignIn;
+  final VoidCallback onGoogleSignIn;
+  final bool isLoading;
 
   const _WelcomeContent({
     super.key,
     required this.onGetStarted,
     required this.onSignIn,
+    required this.onGoogleSignIn,
+    required this.isLoading,
   });
 
   @override
@@ -383,6 +444,55 @@ class _WelcomeContent extends StatelessWidget {
               child: const Text('Sign In'),
             ),
           ),
+          const SizedBox(height: 20),
+
+          // ── Or divider ──
+          Row(
+            children: [
+              Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.3))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'or',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.3))),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // ── Continue with Google ──
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: OutlinedButton.icon(
+              onPressed: isLoading ? null : onGoogleSignIn,
+              icon: Image.network(
+                'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                height: 24,
+                width: 24,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 28, color: Colors.white),
+              ),
+              label: Text(
+                'Continue with Google',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white54, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
 
           const SizedBox(height: 48),
         ],
@@ -403,6 +513,7 @@ class _SignInContent extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onTogglePassword;
   final VoidCallback onLogin;
+  final VoidCallback onGoogleSignIn;
   final VoidCallback onBack;
   final VoidCallback onGoToSignUp;
 
@@ -415,6 +526,7 @@ class _SignInContent extends StatelessWidget {
     required this.isLoading,
     required this.onTogglePassword,
     required this.onLogin,
+    required this.onGoogleSignIn,
     required this.onBack,
     required this.onGoToSignUp,
   });
@@ -564,6 +676,55 @@ class _SignInContent extends StatelessWidget {
                           : const Text('Sign In'),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── Or divider ──
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'or',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Google Sign-In ──
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null : onGoogleSignIn,
+                      icon: Image.network(
+                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                        height: 22,
+                        width: 22,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 26),
+                      ),
+                      label: Text(
+                        'Sign in with Google',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF2D2D2D),
+                        side: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
 
                   // Switch to Sign Up
@@ -619,6 +780,7 @@ class _SignUpContent extends StatelessWidget {
   final VoidCallback onToggleConfirmPassword;
   final ValueChanged<bool?> onToggleTerms;
   final VoidCallback onSignUp;
+  final VoidCallback onGoogleSignIn;
   final VoidCallback onBack;
   final VoidCallback onGoToSignIn;
 
@@ -638,6 +800,7 @@ class _SignUpContent extends StatelessWidget {
     required this.onToggleConfirmPassword,
     required this.onToggleTerms,
     required this.onSignUp,
+    required this.onGoogleSignIn,
     required this.onBack,
     required this.onGoToSignIn,
   });
@@ -871,6 +1034,55 @@ class _SignUpContent extends StatelessWidget {
                               ),
                             )
                           : const Text('Sign Up'),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Or divider ──
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'or',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Google Sign-Up ──
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null : onGoogleSignIn,
+                      icon: Image.network(
+                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                        height: 22,
+                        width: 22,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 26),
+                      ),
+                      label: Text(
+                        'Sign up with Google',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF2D2D2D),
+                        side: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),

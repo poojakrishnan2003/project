@@ -23,6 +23,7 @@ dependencies:
   geolocator: ^13.0.0
   flutter_dotenv: ^5.1.0
   google_fonts: ^6.1.0
+  google_sign_in: ^6.2.2
 
   # Search & API
   http: ^1.2.0
