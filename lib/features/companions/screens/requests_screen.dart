@@ -28,9 +28,12 @@ class _RequestsScreenState extends State<RequestsScreen> {
         appBar: AppBar(
           title: const Text('Companion Requests'),
           bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
             tabs: [
               Tab(text: 'Incoming'),
-              Tab(text: 'Connected'), // Placeholder for now
+              Tab(text: 'Connected'),
             ],
           ),
         ),

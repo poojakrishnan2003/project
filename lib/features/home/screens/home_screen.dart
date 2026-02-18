@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:roamly/core/core.dart';
@@ -9,7 +10,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:roamly/features/shared/widgets/spot_map_picker.dart';
 import '../widgets/add_spot_dialog.dart';
 import '../widgets/location_search_delegate.dart';
-import '../../debug/screens/debug_screen.dart';
 import 'package:roamly/models/search_result_model.dart';
 import 'package:roamly/core/constants/mapbox_config.dart';
 import 'package:roamly/features/companions/screens/find_companion_screen.dart';
@@ -321,17 +321,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 FloatingActionButton.small(
                   heroTag: 'location',
                   onPressed: _handleLocationButton,
-                  backgroundColor: AppTheme.surfaceColor,
-                  child: const Icon(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  child: Icon(
                     Icons.my_location,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
                   heroTag: 'add',
                   onPressed: _handleAddSpot,
-                  child: const Icon(Icons.add),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.add, color: Colors.white),
                 ),
               ],
             ),
@@ -411,14 +412,20 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = Theme.of(context).colorScheme.primary;
+    final textStyle = GoogleFonts.poppins(fontWeight: FontWeight.w500);
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppTheme.primaryColor, AppTheme.primaryDark],
+                colors: isDark
+                    ? [const Color(0xFF0D1652), const Color(0xFF1A237E)]
+                    : [const Color(0xFF1A237E), const Color(0xFF3949AB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -427,19 +434,27 @@ class AppDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.two_wheeler_rounded,
                     size: 32,
-                    color: AppTheme.primaryColor,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Welcome, Traveler!',
-                  style: TextStyle(
+                Text(
+                  'Welcome, Rider!',
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -447,8 +462,8 @@ class AppDrawer extends StatelessWidget {
                 ),
                 Text(
                   AppConstants.appTagline,
-                  style: TextStyle(
-                    color: Colors.white.withAlpha((0.8 * 255).round()),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white70,
                     fontSize: 12,
                   ),
                 ),
@@ -456,21 +471,21 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.home_outlined),
-            title: const Text('Home'),
+            leading: Icon(Icons.home_outlined, color: iconColor),
+            title: Text('Home', style: textStyle),
             onTap: () => Navigator.pop(context),
           ),
           ListTile(
-            leading: const Icon(Icons.route_outlined),
-            title: const Text('My Trips'),
+            leading: Icon(Icons.route_outlined, color: iconColor),
+            title: Text('My Trips', style: textStyle),
             onTap: () {
               Navigator.pop(context);
               // TODO: Navigate to trips
             },
           ),
           ListTile(
-            leading: const Icon(Icons.people_outline),
-            title: const Text('Find Companions'),
+            leading: Icon(Icons.people_outline, color: iconColor),
+            title: Text('Find Companions', style: textStyle),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -480,8 +495,8 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.star_outline),
-            title: const Text('Hidden Gems'),
+            leading: Icon(Icons.star_outline, color: iconColor),
+            title: Text('Hidden Gems', style: textStyle),
             onTap: () {
               Navigator.pop(context);
               // TODO: Navigate to hidden gems
@@ -489,36 +504,24 @@ class AppDrawer extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('Settings'),
+            leading: Icon(Icons.settings_outlined, color: iconColor),
+            title: Text('Settings', style: textStyle),
             onTap: () {
               Navigator.pop(context);
               // TODO: Navigate to settings
             },
           ),
           ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('Help & Feedback'),
+            leading: Icon(Icons.help_outline, color: iconColor),
+            title: Text('Help & Feedback', style: textStyle),
             onTap: () {
               Navigator.pop(context);
-              // TODO: Navigate to help
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.developer_mode),
-            title: const Text('Developer Options'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DebugScreen()),
-              );
             },
           ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout'),
+            title: Text('Logout', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
             onTap: () async {
               await FirebaseAuth.instance.signOut();
               if (!context.mounted) return;

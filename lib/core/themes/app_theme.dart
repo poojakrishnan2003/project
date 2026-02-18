@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// App theme configuration for Roamly
-/// Uses a travel-inspired color palette with warm oranges and teals
+/// Uses a navy blue palette for a premium rider-focused experience
 class AppTheme {
   // Prevent instantiation
   AppTheme._();
 
-  // Primary Colors - Warm sunset orange for adventure vibes
-  static const Color primaryColor = Color(0xFFFF6B35);
-  static const Color primaryLight = Color(0xFFFF8C5A);
-  static const Color primaryDark = Color(0xFFE55A2B);
+  // Primary Colors - Navy blue for premium rider experience
+  static const Color primaryColor = Color(0xFF1A237E);
+  static const Color primaryLight = Color(0xFF3949AB);
+  static const Color primaryDark = Color(0xFF0D1652);
 
   // Secondary Colors - Teal for exploration/discovery
   static const Color secondaryColor = Color(0xFF2EC4B6);
@@ -53,13 +54,14 @@ class AppTheme {
         error: errorColor,
         onError: Colors.white,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: surfaceColor,
-        foregroundColor: textPrimary,
-        titleTextStyle: TextStyle(
-          color: textPrimary,
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -121,14 +123,21 @@ class AppTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        elevation: 4,
+        elevation: 6,
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
         selectedItemColor: primaryColor,
         unselectedItemColor: textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: dividerColor,
@@ -142,10 +151,10 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primaryColor: primaryColor,
+      primaryColor: primaryLight,
       scaffoldBackgroundColor: darkBackground,
       colorScheme: const ColorScheme.dark(
-        primary: primaryColor,
+        primary: primaryLight,
         onPrimary: Colors.white,
         secondary: secondaryColor,
         onSecondary: Colors.white,
@@ -154,20 +163,24 @@ class AppTheme {
         error: errorColor,
         onError: Colors.white,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: darkSurface,
-        foregroundColor: darkTextPrimary,
-        titleTextStyle: TextStyle(
-          color: darkTextPrimary,
+        backgroundColor: primaryDark,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
       ),
+      drawerTheme: const DrawerThemeData(
+        backgroundColor: Color(0xFF1A1A2E),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: primaryLight,
           foregroundColor: Colors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -176,12 +189,67 @@ class AppTheme {
           ),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryLight,
+          side: const BorderSide(color: primaryLight, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkSurface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[700]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[700]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: primaryLight, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: errorColor),
+        ),
+        hintStyle: const TextStyle(color: darkTextSecondary),
+      ),
       cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         color: darkSurface,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primaryLight,
+        foregroundColor: Colors.white,
+        elevation: 6,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        selectedItemColor: primaryLight,
+        unselectedItemColor: darkTextSecondary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: Colors.grey[800],
+        thickness: 1,
       ),
     );
   }
