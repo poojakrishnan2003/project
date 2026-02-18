@@ -45,7 +45,8 @@ class GoogleAuthService {
     }
   }
 
-  /// Creates a UserProfile in Firestore if one doesn't already exist
+  /// Creates a UserProfile in Firestore if one doesn't already exist.
+  /// Updates photoUrl on existing profiles if it changed.
   Future<void> _ensureUserProfile(UserCredential credential) async {
     final user = credential.user;
     if (user == null) return;
@@ -59,12 +60,18 @@ class GoogleAuthService {
         email: user.email ?? '',
         name: user.displayName ?? 'Rider',
         phoneNumber: user.phoneNumber ?? '',
+        photoUrl: user.photoURL,
         createdAt: DateTime.now(),
       );
       await docRef.set(profile.toMap());
       debugPrint('Created new user profile for Google user: ${user.email}');
     } else {
-      debugPrint('User profile already exists for: ${user.email}');
+      // Update photo URL if it changed (e.g., user updated their Google profile)
+      final existingData = doc.data();
+      if (existingData != null && existingData['photoUrl'] != user.photoURL && user.photoURL != null) {
+        await docRef.update({'photoUrl': user.photoURL});
+        debugPrint('Updated photoUrl for: ${user.email}');
+      }
     }
   }
 }

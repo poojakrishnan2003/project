@@ -6,6 +6,7 @@ class UserProfile {
   final String email;
   final String name;
   final String phoneNumber;
+  final String? photoUrl;
   final DateTime createdAt;
 
   final Map<String, dynamic>? location;
@@ -17,6 +18,7 @@ class UserProfile {
     required this.email,
     required this.name,
     required this.phoneNumber,
+    this.photoUrl,
     required this.createdAt,
     this.location,
     this.isDiscoverable = false,
@@ -29,6 +31,7 @@ class UserProfile {
       'email': email,
       'name': name,
       'phoneNumber': phoneNumber,
+      'photoUrl': photoUrl,
       'createdAt': Timestamp.fromDate(createdAt),
       'location': location,
       'isDiscoverable': isDiscoverable,
@@ -42,6 +45,7 @@ class UserProfile {
       email: map['email'] ?? '',
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
+      photoUrl: map['photoUrl'],
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       location: map['location'],
       isDiscoverable: map['isDiscoverable'] ?? false,
@@ -54,6 +58,7 @@ class UserProfile {
     String? email,
     String? name,
     String? phoneNumber,
+    String? photoUrl,
     DateTime? createdAt,
     Map<String, dynamic>? location,
     bool? isDiscoverable,
@@ -64,6 +69,7 @@ class UserProfile {
       email: email ?? this.email,
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      photoUrl: photoUrl ?? this.photoUrl,
       createdAt: createdAt ?? this.createdAt,
       location: location ?? this.location,
       isDiscoverable: isDiscoverable ?? this.isDiscoverable,

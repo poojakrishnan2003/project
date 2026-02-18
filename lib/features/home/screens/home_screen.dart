@@ -7,12 +7,15 @@ import 'package:roamly/core/services/location_service.dart';
 import 'package:roamly/models/location_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:roamly/features/shared/widgets/spot_map_picker.dart';
 import '../widgets/add_spot_dialog.dart';
 import '../widgets/location_search_delegate.dart';
 import 'package:roamly/models/search_result_model.dart';
 import 'package:roamly/core/constants/mapbox_config.dart';
 import 'package:roamly/features/companions/screens/find_companion_screen.dart';
+import 'package:roamly/features/shared/widgets/profile_image_widget.dart';
+import 'package:roamly/features/profile/screens/profile_screen.dart';
 
 /// Home screen with map view and mark spot feature
 class HomeScreen extends StatefulWidget {
@@ -416,64 +419,107 @@ class AppDrawer extends StatelessWidget {
     final iconColor = Theme.of(context).colorScheme.primary;
     final textStyle = GoogleFonts.poppins(fontWeight: FontWeight.w500);
 
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF0D1652), const Color(0xFF1A237E)]
-                    : [const Color(0xFF1A237E), const Color(0xFF3949AB)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
+          StreamBuilder<DocumentSnapshot>(
+            stream: uid != null
+                ? FirebaseFirestore.instance.collection('users').doc(uid).snapshots()
+                : const Stream.empty(),
+            builder: (context, snapshot) {
+              // Get data from Firestore profile (if loaded), fallback to FirebaseAuth
+              final data = snapshot.data?.data() as Map<String, dynamic>?;
+              final displayName = data?['name'] ??
+                  ((user?.displayName != null && user!.displayName!.isNotEmpty)
+                      ? user.displayName!
+                      : 'Rider');
+              final firestorePhoto = data?['photoUrl'] as String?;
+              final authPhoto = user?.photoURL;
+              final photoUrl = firestorePhoto ?? authPhoto;
+              final email = data?['email'] ?? user?.email ?? '';
+
+              // Sync photo from FirebaseAuth → Firestore if Firestore is missing it
+              if (firestorePhoto == null && authPhoto != null && uid != null && snapshot.hasData) {
+                FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .update({'photoUrl': authPhoto})
+                    .then((_) => debugPrint('Synced photoUrl to Firestore'))
+                    .catchError((e) => debugPrint('Failed to sync photoUrl: $e'));
+              }
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                child: DrawerHeader(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 2,
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [const Color(0xFF0D1652), const Color(0xFF1A237E)]
+                          : [const Color(0xFF1A237E), const Color(0xFF3949AB)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.two_wheeler_rounded,
-                    size: 32,
-                    color: Colors.white,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Profile picture or fallback avatar
+                      ProfileImageWidget(
+                        photoUrl: photoUrl,
+                        fallbackLetter: displayName[0],
+                        size: 64,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Welcome, $displayName!',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (email.isNotEmpty)
+                        Text(
+                          email,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Welcome, Rider!',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  AppConstants.appTagline,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.home_outlined, color: iconColor),
             title: Text('Home', style: textStyle),
             onTap: () => Navigator.pop(context),
+          ),
+          ListTile(
+            leading: Icon(Icons.person_outline, color: iconColor),
+            title: Text('Profile', style: textStyle),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.route_outlined, color: iconColor),
