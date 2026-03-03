@@ -344,6 +344,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
+        onTap: (index) {
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FindCompanionScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.explore_outlined),
@@ -356,9 +369,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Trips',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.forum_outlined),
-            activeIcon: Icon(Icons.forum),
-            label: 'Community',
+            icon: Icon(Icons.people_outline),
+            activeIcon: Icon(Icons.people),
+            label: 'Companions',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -529,17 +542,7 @@ class AppDrawer extends StatelessWidget {
               // TODO: Navigate to trips
             },
           ),
-          ListTile(
-            leading: Icon(Icons.people_outline, color: iconColor),
-            title: Text('Find Companions', style: textStyle),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FindCompanionScreen()),
-              );
-            },
-          ),
+
           ListTile(
             leading: Icon(Icons.star_outline, color: iconColor),
             title: Text('Hidden Gems', style: textStyle),
