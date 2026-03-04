@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:roamly/features/profile/screens/settings_screen.dart';
 
 /// Screen for viewing and editing user profile details.
 class ProfileScreen extends StatefulWidget {
@@ -160,7 +161,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      appBar: AppBar(title: Text('My Profile', style: GoogleFonts.poppins())),
+      appBar: AppBar(
+        title: Text('My Profile', style: GoogleFonts.poppins()),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Form(
