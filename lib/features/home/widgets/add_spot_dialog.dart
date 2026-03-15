@@ -85,7 +85,7 @@ class _AddSpotDialogState extends State<AddSpotDialog> {
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
                     labelText: 'Spot Name',
-                    hintText: 'e.g., Hidden Creek',
+                    hintText: 'e.g., Central Park',
                     prefixIcon: Icon(Icons.label_outline),
                     border: OutlineInputBorder(),
                   ),

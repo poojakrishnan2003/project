@@ -266,7 +266,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _StatItem(value: '12', label: 'Trips\nCreated', icon: Icons.map_outlined, isDark: isDark, primary: primaryColor),
           _StatItem(value: '48', label: 'Places\nVisited', icon: Icons.place_outlined, isDark: isDark, primary: primaryColor),
-          _StatItem(value: '7', label: 'Gems\nDiscovered', icon: Icons.star_outline, isDark: isDark, primary: primaryColor),
         ],
       ),
     );

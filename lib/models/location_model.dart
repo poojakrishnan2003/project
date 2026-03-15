@@ -1,4 +1,4 @@
-/// Location model representing a point of interest or "hidden gem"
+/// Location model representing a point of interest
 class LocationModel {
   final String? id;
   final String name;

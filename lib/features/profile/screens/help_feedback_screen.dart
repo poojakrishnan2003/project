@@ -25,16 +25,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
       answer:
           'Open a trip, tap "Add Place", then search or pick a location on the map. You can add notes and photos to each place.',
     ),
-    _FaqItem(
-      question: 'What are Hidden Gems?',
-      answer:
-          'Hidden Gems are unique, off-the-beaten-path locations shared by the Roamly community. You can discover them from the drawer menu.',
-    ),
-    _FaqItem(
-      question: 'How can I add a Hidden Gem location?',
-      answer:
-          'Tap the + FAB on the map screen, choose a location, and mark it as a Hidden Gem while filling out the spot details.',
-    ),
+
     _FaqItem(
       question: 'How do I update my profile?',
       answer:

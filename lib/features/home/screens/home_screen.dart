@@ -554,14 +554,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
 
-          ListTile(
-            leading: Icon(Icons.star_outline, color: iconColor),
-            title: Text('Hidden Gems', style: textStyle),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to hidden gems
-            },
-          ),
           const Divider(),
           ListTile(
             leading: Icon(Icons.settings_outlined, color: iconColor),
