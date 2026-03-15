@@ -1,41 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
-
-// ── Models ──────────────────────────────────────────────────────────────
-
-class SimpleTrip {
-  final String id;
-  String name;
-  String destination;
-  DateTime startDate;
-  DateTime endDate;
-  String notes;
-  List<SimplePlace> places;
-
-  SimpleTrip({
-    required this.id,
-    required this.name,
-    required this.destination,
-    required this.startDate,
-    required this.endDate,
-    this.notes = '',
-    this.places = const [],
-  });
-}
-
-class SimplePlace {
-  final String id;
-  final String name;
-  final String location;
-
-  SimplePlace({required this.id, required this.name, required this.location});
-}
+import 'package:roamly/core/services/trip_service.dart';
+import 'package:roamly/models/trip_model.dart';
+import 'package:roamly/features/trips/screens/trip_details_screen.dart'; // We will create this
+import 'package:firebase_auth/firebase_auth.dart';
 
 // ── Main Screen ─────────────────────────────────────────────────────────
 
-/// My Trips screen that manages a list of trips and handles CRUD ops locally.
+/// My Trips screen that manages a list of trips using TripService
 class MyTripsScreen extends StatefulWidget {
   const MyTripsScreen({super.key});
 
@@ -44,50 +17,152 @@ class MyTripsScreen extends StatefulWidget {
 }
 
 class _MyTripsScreenState extends State<MyTripsScreen> {
-  final List<SimpleTrip> _trips = [];
-  final _uuid = Uuid();
-
-  // Selected trip to show details for (null = list view)
-  SimpleTrip? _selectedTrip;
+  final TripService _tripService = TripService();
+  final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   Widget build(BuildContext context) {
-    if (_selectedTrip != null) {
-      return _TripDetailsView(
-        trip: _selectedTrip!,
-        onBack: () => setState(() => _selectedTrip = null),
-        onUpdate: () => setState(() {}),
-      );
-    }
+    return StreamBuilder<List<TripModel>>(
+      stream: _tripService.getUserTrips(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error loading trips: ${snapshot.error}')),
+          );
+        }
+
+        final trips = snapshot.data ?? [];
+        final activeTrips = trips.where((t) => 
+            t.ownerId == _currentUserId || 
+            t.companionIds.contains(_currentUserId) || 
+            t.editorIds.contains(_currentUserId)).toList();
+        final invitedTrips = trips.where((t) => 
+            t.pendingCompanionIds.contains(_currentUserId) || 
+            t.pendingEditorIds.contains(_currentUserId)).toList();
+
+        return DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('My Trips', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              elevation: 0,
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'My Trips'),
+                  Tab(text: 'Invitations'),
+                ],
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+                  child: FilledButton.icon(
+                    onPressed: _createNewTrip,
+                    style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text('New Trip', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+            body: TabBarView(
+              children: [
+                _buildTripsList(activeTrips),
+                _buildInvitationsList(invitedTrips),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTripsList(List<TripModel> activeTrips) {
     return _TripsListView(
-      trips: _trips,
+      trips: activeTrips,
       onCreateTrip: _createNewTrip,
-      onViewTrip: (trip) => setState(() => _selectedTrip = trip),
+      onViewTrip: (trip) {
+         Navigator.push(
+           context,
+           MaterialPageRoute(
+             builder: (context) => TripDetailsScreen(tripId: trip.id),
+           ),
+         );
+      },
       onEditTrip: _editTrip,
       onDeleteTrip: _deleteTrip,
+      currentUserId: _currentUserId,
+    );
+  }
+
+  Widget _buildInvitationsList(List<TripModel> invitedTrips) {
+    return _InvitationsListView(
+      trips: invitedTrips,
+      onAccept: (trip) async {
+         await _tripService.acceptTripInvitation(trip);
+      },
+      onDecline: (trip) async {
+         await _tripService.declineTripInvitation(trip);
+      },
     );
   }
 
   void _createNewTrip() {
-    _showTripFormModal(context, null).then((newTrip) {
-      if (newTrip != null) {
-        setState(() => _trips.insert(0, newTrip));
+    _showTripFormModal(context, null).then((newTripData) async {
+      if (newTripData != null && _currentUserId.isNotEmpty) {
+         final trip = TripModel(
+           id: '', // Generated by Firestore
+           ownerId: _currentUserId,
+           title: newTripData['title'],
+           destination: newTripData['destination'],
+           description: newTripData['description'],
+           startDate: newTripData['startDate'],
+           endDate: newTripData['endDate'],
+           createdAt: DateTime.now(),
+           updatedAt: DateTime.now(),
+           locations: [],
+         );
+         await _tripService.createTrip(trip);
       }
     });
   }
 
-  void _editTrip(SimpleTrip trip) {
-    _showTripFormModal(context, trip).then((updatedTrip) {
-      if (updatedTrip != null) {
-        setState(() {
-          final idx = _trips.indexWhere((t) => t.id == updatedTrip.id);
-          if (idx != -1) _trips[idx] = updatedTrip;
-        });
+  void _editTrip(TripModel trip) {
+    if (trip.ownerId != _currentUserId && !trip.editorIds.contains(_currentUserId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You do not have permission to edit this trip')),
+      );
+      return;
+    }
+    
+    _showTripFormModal(context, trip).then((updatedData) async {
+      if (updatedData != null) {
+        final updatedTrip = trip.copyWith(
+           title: updatedData['title'],
+           destination: updatedData['destination'],
+           description: updatedData['description'],
+           startDate: updatedData['startDate'],
+           endDate: updatedData['endDate'],
+           updatedAt: DateTime.now(),
+        );
+        await _tripService.updateTrip(updatedTrip);
       }
     });
   }
 
-  void _deleteTrip(SimpleTrip trip) {
+  void _deleteTrip(TripModel trip) {
+    if (trip.ownerId != _currentUserId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Only the trip owner can delete the trip')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -95,7 +170,7 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
         return AlertDialog(
           backgroundColor: isDark ? const Color(0xFF16213E) : Colors.white,
           title: Text('Delete Trip?', style: GoogleFonts.poppins(color: Colors.red)),
-          content: Text('Are you sure you want to delete "${trip.name}"?', 
+          content: Text('Are you sure you want to delete "${trip.title}"?', 
             style: GoogleFonts.poppins(color: isDark ? Colors.white : Colors.black87)),
           actions: [
             TextButton(
@@ -104,9 +179,9 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                setState(() => _trips.removeWhere((t) => t.id == trip.id));
+              onPressed: () async {
                 Navigator.pop(ctx);
+                await _tripService.deleteTrip(trip.id);
               },
               child: Text('Delete', style: GoogleFonts.poppins()),
             ),
@@ -116,46 +191,38 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
     );
   }
 
-  Future<SimpleTrip?> _showTripFormModal(BuildContext context, SimpleTrip? existingTrip) {
-    return showModalBottomSheet<SimpleTrip>(
+  Future<Map<String, dynamic>?> _showTripFormModal(BuildContext context, TripModel? existingTrip) {
+    return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _TripFormSheet(
         existingTrip: existingTrip,
-        onSave: (name, dest, start, end, notes) {
-          if (existingTrip == null) {
-            return SimpleTrip(
-              id: _uuid.v4(),
-              name: name,
-              destination: dest,
-              startDate: start,
-              endDate: end,
-              notes: notes,
-            );
-          } else {
-            existingTrip.name = name;
-            existingTrip.destination = dest;
-            existingTrip.startDate = start;
-            existingTrip.endDate = end;
-            existingTrip.notes = notes;
-            return existingTrip;
-          }
+        onSave: (title, dest, start, end, description) {
+          return {
+            'title': title,
+            'destination': dest,
+            'startDate': start,
+            'endDate': end,
+            'description': description,
+          };
         },
       ),
     );
   }
 }
 
+
 // ── Trips List View ─────────────────────────────────────────────────────
 
 // ignore: must_be_immutable
 class _TripsListView extends StatelessWidget {
-  final List<SimpleTrip> trips;
+  final List<TripModel> trips;
   final VoidCallback onCreateTrip;
-  final Function(SimpleTrip) onViewTrip;
-  final Function(SimpleTrip) onEditTrip;
-  final Function(SimpleTrip) onDeleteTrip;
+  final Function(TripModel) onViewTrip;
+  final Function(TripModel) onEditTrip;
+  final Function(TripModel) onDeleteTrip;
+  final String currentUserId;
 
   _TripsListView({
     required this.trips,
@@ -163,6 +230,7 @@ class _TripsListView extends StatelessWidget {
     required this.onViewTrip,
     required this.onEditTrip,
     required this.onDeleteTrip,
+    required this.currentUserId,
   });
 
   @override
@@ -173,22 +241,6 @@ class _TripsListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text('My Trips', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-        backgroundColor: isDark ? const Color(0xFF16213E) : Colors.white,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-            child: FilledButton.icon(
-              onPressed: onCreateTrip,
-              style: FilledButton.styleFrom(backgroundColor: primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              icon: const Icon(Icons.add, size: 18),
-              label: Text('New Trip', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ],
-      ),
       body: trips.isEmpty
           ? _buildEmptyState(isDark)
           : ListView.builder(
@@ -201,6 +253,7 @@ class _TripsListView extends StatelessWidget {
                 onView: () => onViewTrip(trips[i]),
                 onEdit: () => onEditTrip(trips[i]),
                 onDelete: () => onDeleteTrip(trips[i]),
+                currentUserId: currentUserId,
               ),
             ),
     );
@@ -242,14 +295,125 @@ class _TripsListView extends StatelessWidget {
   }
 }
 
+class _InvitationsListView extends StatelessWidget {
+  final List<TripModel> trips;
+  final Function(TripModel) onAccept;
+  final Function(TripModel) onDecline;
+
+  const _InvitationsListView({
+    required this.trips,
+    required this.onAccept,
+    required this.onDecline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF4F6FB);
+
+    if (trips.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+             Icon(Icons.mail_outline, size: 80, color: isDark ? Colors.white24 : Colors.grey[300]),
+             const SizedBox(height: 24),
+             Text(
+               'No invitations',
+               style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+             ),
+             const SizedBox(height: 12),
+             Text(
+               'You have no pending trip invitations.',
+               textAlign: TextAlign.center,
+               style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white54 : Colors.grey[600]),
+             ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      color: bgColor,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: trips.length,
+        itemBuilder: (ctx, i) {
+          final trip = trips[i];
+          final dateFormat = DateFormat('MMM d, yyyy');
+          final dateString = '${dateFormat.format(trip.startDate)}${trip.endDate != null ? ' - ${dateFormat.format(trip.endDate!)}' : ''}';
+          
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF16213E) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  trip.title,
+                  style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 16, color: isDark ? Colors.white54 : Colors.grey[500]),
+                    const SizedBox(width: 6),
+                    Text(trip.destination ?? 'No destination set', style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700])),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_month_outlined, size: 16, color: isDark ? Colors.white54 : Colors.grey[500]),
+                    const SizedBox(width: 6),
+                    Text(dateString, style: GoogleFonts.poppins(fontSize: 13, color: isDark ? Colors.white54 : Colors.grey[600])),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => onDecline(trip),
+                        style: OutlinedButton.styleFrom(
+                           foregroundColor: Colors.red,
+                           side: const BorderSide(color: Colors.red),
+                        ),
+                        child: Text('Decline', style: GoogleFonts.poppins()),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => onAccept(trip),
+                        child: Text('Accept', style: GoogleFonts.poppins()),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 // ignore: must_be_immutable
 class _TripCard extends StatelessWidget {
-  final SimpleTrip trip;
+  final TripModel trip;
   final bool isDark;
   final Color primary;
   final VoidCallback onView;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final String currentUserId;
 
   _TripCard({
     required this.trip,
@@ -258,12 +422,15 @@ class _TripCard extends StatelessWidget {
     required this.onView,
     required this.onEdit,
     required this.onDelete,
+    required this.currentUserId,
   });
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
-    final dateString = '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}';
+    final dateString = '${dateFormat.format(trip.startDate)}${trip.endDate != null ? ' - ${dateFormat.format(trip.endDate!)}' : ''}';
+    final canEdit = trip.ownerId == currentUserId || trip.editorIds.contains(currentUserId);
+    final isOwner = trip.ownerId == currentUserId;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -286,14 +453,14 @@ class _TripCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        trip.name,
+                        trip.title,
                         style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(color: primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                      child: Text('${trip.places.length} places', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: primary)),
+                      child: Text('${trip.locations.length} places', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: primary)),
                     ),
                   ],
                 ),
@@ -302,7 +469,7 @@ class _TripCard extends StatelessWidget {
                   children: [
                     Icon(Icons.location_on_outlined, size: 16, color: isDark ? Colors.white54 : Colors.grey[500]),
                     const SizedBox(width: 6),
-                    Text(trip.destination, style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700])),
+                    Text(trip.destination ?? 'No destination set', style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700])),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -327,206 +494,30 @@ class _TripCard extends StatelessWidget {
                   style: TextButton.styleFrom(foregroundColor: primary, padding: const EdgeInsets.symmetric(vertical: 12)),
                 ),
               ),
-              Container(width: 1, height: 24, color: isDark ? Colors.grey[800] : Colors.grey[200]),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('Edit'),
-                  style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.grey[700], padding: const EdgeInsets.symmetric(vertical: 12)),
+              if (canEdit)
+                Container(width: 1, height: 24, color: isDark ? Colors.grey[800] : Colors.grey[200]),
+              if (canEdit)
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Edit'),
+                    style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.grey[700], padding: const EdgeInsets.symmetric(vertical: 12)),
+                  ),
                 ),
-              ),
-              Container(width: 1, height: 24, color: isDark ? Colors.grey[800] : Colors.grey[200]),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Delete'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 12)),
+              if (isOwner)
+                Container(width: 1, height: 24, color: isDark ? Colors.grey[800] : Colors.grey[200]),
+              if (isOwner)
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Delete'),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 12)),
+                  ),
                 ),
-              ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Trip Details View ───────────────────────────────────────────────────
-
-// ignore: must_be_immutable
-class _TripDetailsView extends StatelessWidget {
-  final SimpleTrip trip;
-  final VoidCallback onBack;
-  final VoidCallback onUpdate;
-  final _uuid = Uuid();
-
-  _TripDetailsView({required this.trip, required this.onBack, required this.onUpdate});
-
-  void _addMockPlace(BuildContext context) {
-    // Generate a mock place and add to trip
-    final newPlace = SimplePlace(
-      id: _uuid.v4(),
-      name: 'Eiffel Tower Tour ${trip.places.length + 1}',
-      location: trip.destination,
-    );
-    trip.places.add(newPlace);
-    onUpdate();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Added place to trip'), backgroundColor: Color(0xFF06D6A0)),
-    );
-  }
-
-  void _removePlace(BuildContext context, String placeId) {
-    trip.places.removeWhere((p) => p.id == placeId);
-    onUpdate();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = Theme.of(context).colorScheme.primary;
-    final bgColor = isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF4F6FB);
-    final dateFormat = DateFormat('MMMM d, yyyy');
-    
-    // Calculate mock progress (max 5 or current length + 2)
-    final totalExpected = trip.places.length < 5 ? 5 : trip.places.length + 2;
-    final visitedCount = trip.places.length;
-    final progress = visitedCount / totalExpected;
-
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text('Trip Details', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-        backgroundColor: isDark ? const Color(0xFF16213E) : Colors.white,
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Header Card
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: primary,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(trip.name, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 16, color: Colors.white70),
-                    const SizedBox(width: 6),
-                    Text(trip.destination, style: GoogleFonts.poppins(fontSize: 15, color: Colors.white)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_month, size: 16, color: Colors.white70),
-                    const SizedBox(width: 6),
-                    Text('${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Progress Card
-          _SectionCard(
-            isDark: isDark,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Trip Progress', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Visited: $visitedCount / $totalExpected places', style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700])),
-                    Text('${(progress * 100).toInt()}%', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: primary)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(primary),
-                  borderRadius: BorderRadius.circular(8),
-                  minHeight: 8,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Notes
-          if (trip.notes.isNotEmpty) ...[
-            _SectionCard(
-              isDark: isDark,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Notes', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
-                  const SizedBox(height: 12),
-                  Text(trip.notes, style: GoogleFonts.poppins(fontSize: 14, height: 1.5, color: isDark ? Colors.white70 : Colors.grey[700])),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-
-          // Places List
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Places to Visit', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
-              TextButton.icon(
-                onPressed: () => _addMockPlace(context),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Place'),
-                style: TextButton.styleFrom(foregroundColor: primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          
-          if (trip.places.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Text('No places added yet.', style: GoogleFonts.poppins(color: isDark ? Colors.white54 : Colors.grey[500])),
-              ),
-            )
-          else
-            ...trip.places.map((place) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF16213E) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: Icon(Icons.place, color: primary),
-                    ),
-                    title: Text(place.name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
-                    subtitle: Text(place.location, style: GoogleFonts.poppins(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey[600])),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                      onPressed: () => _removePlace(context, place.id),
-                    ),
-                  ),
-                )),
         ],
       ),
     );
@@ -535,34 +526,14 @@ class _TripDetailsView extends StatelessWidget {
 
 // ── Shared Widgets ──────────────────────────────────────────────────────
 
-class _SectionCard extends StatelessWidget {
-  final bool isDark;
-  final Widget child;
-
-  const _SectionCard({required this.isDark, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16213E) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: child,
-    );
-  }
-}
+// _SectionCard removed
 
 // ── Create/Edit Form Bottom Sheet ───────────────────────────────────────
 
 // ignore: must_be_immutable
 class _TripFormSheet extends StatefulWidget {
-  final SimpleTrip? existingTrip;
-  final SimpleTrip Function(String name, String dest, DateTime start, DateTime end, String notes) onSave;
+  final TripModel? existingTrip;
+  final Map<String, dynamic> Function(String title, String dest, DateTime start, DateTime end, String description) onSave;
 
   _TripFormSheet({this.existingTrip, required this.onSave});
 
@@ -572,20 +543,20 @@ class _TripFormSheet extends StatefulWidget {
 
 class _TripFormSheetState extends State<_TripFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameCtrl;
+  late TextEditingController _titleCtrl;
   late TextEditingController _destCtrl;
-  late TextEditingController _notesCtrl;
+  late TextEditingController _descCtrl;
   DateTime? _startDate;
   DateTime? _endDate;
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.existingTrip?.name ?? '');
+    _titleCtrl = TextEditingController(text: widget.existingTrip?.title ?? '');
     _destCtrl = TextEditingController(text: widget.existingTrip?.destination ?? '');
-    _notesCtrl = TextEditingController(text: widget.existingTrip?.notes ?? '');
+    _descCtrl = TextEditingController(text: widget.existingTrip?.description ?? '');
     _startDate = widget.existingTrip?.startDate;
-    _endDate = widget.existingTrip?.endDate;
+    _endDate = widget.existingTrip?.endDate ?? widget.existingTrip?.startDate;
   }
 
   Future<void> _pickDateRange() async {
@@ -624,8 +595,8 @@ class _TripFormSheetState extends State<_TripFormSheet> {
       return;
     }
 
-    final savedTrip = widget.onSave(_nameCtrl.text.trim(), _destCtrl.text.trim(), _startDate!, _endDate!, _notesCtrl.text.trim());
-    Navigator.pop(context, savedTrip);
+    final savedTripData = widget.onSave(_titleCtrl.text.trim(), _destCtrl.text.trim(), _startDate!, _endDate!, _descCtrl.text.trim());
+    Navigator.pop(context, savedTripData);
   }
 
   @override
@@ -655,7 +626,7 @@ class _TripFormSheetState extends State<_TripFormSheet> {
               const SizedBox(height: 24),
 
               // Inputs
-              _Input(ctrl: _nameCtrl, label: 'Trip Name', icon: Icons.map, isDark: isDark, validator: (v) => v!.isEmpty ? 'Required' : null),
+              _Input(ctrl: _titleCtrl, label: 'Trip Title', icon: Icons.map, isDark: isDark, validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 16),
               _Input(ctrl: _destCtrl, label: 'Destination', icon: Icons.location_city, isDark: isDark, validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 16),
@@ -686,7 +657,7 @@ class _TripFormSheetState extends State<_TripFormSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              _Input(ctrl: _notesCtrl, label: 'Notes (Optional)', icon: Icons.notes, isDark: isDark, maxLines: 3),
+              _Input(ctrl: _descCtrl, label: 'Description (Optional)', icon: Icons.notes, isDark: isDark, maxLines: 3),
               const SizedBox(height: 32),
 
               SizedBox(

@@ -18,6 +18,7 @@ import 'package:roamly/features/shared/widgets/profile_image_widget.dart';
 import 'package:roamly/features/profile/screens/profile_screen.dart';
 import 'package:roamly/features/profile/screens/settings_screen.dart';
 import 'package:roamly/features/profile/screens/help_feedback_screen.dart';
+import 'package:roamly/features/home/screens/my_trips_screen.dart';
 
 /// Home screen with map view and mark spot feature
 class HomeScreen extends StatefulWidget {
@@ -347,7 +348,12 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         onTap: (index) {
-          if (index == 2) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyTripsScreen()),
+            );
+          } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const FindCompanionScreen()),
@@ -541,7 +547,10 @@ class AppDrawer extends StatelessWidget {
             title: Text('My Trips', style: textStyle),
             onTap: () {
               Navigator.pop(context);
-              // TODO: Navigate to trips
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyTripsScreen()),
+              );
             },
           ),
 
