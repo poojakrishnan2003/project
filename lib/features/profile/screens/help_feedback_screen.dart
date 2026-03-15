@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Help & Feedback screen containing FAQ, Report a Problem,
 /// Send Feedback, and Contact Support sections.
@@ -101,8 +103,24 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
   Future<void> _submitReport() async {
     if (!_reportFormKey.currentState!.validate()) return;
     setState(() => _isSubmittingReport = true);
-    // Simulate submission delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      await FirebaseFirestore.instance.collection('reports').add({
+        'userId': uid,
+        'title': _reportTitleController.text.trim(),
+        'description': _reportDescController.text.trim(),
+        'hasScreenshot': _screenshotFileName != null,
+        'status': 'new',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isSubmittingReport = false);
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _isSubmittingReport = false;
@@ -130,7 +148,22 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
     }
     if (!_feedbackFormKey.currentState!.validate()) return;
     setState(() => _isSubmittingFeedback = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      await FirebaseFirestore.instance.collection('feedback').add({
+        'userId': uid,
+        'rating': _starRating,
+        'message': _feedbackController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isSubmittingFeedback = false);
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _isSubmittingFeedback = false;
@@ -143,7 +176,23 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
   Future<void> _submitContact() async {
     if (!_contactFormKey.currentState!.validate()) return;
     setState(() => _isSubmittingContact = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      await FirebaseFirestore.instance.collection('contact_messages').add({
+        'userId': uid,
+        'name': _contactNameController.text.trim(),
+        'email': _contactEmailController.text.trim(),
+        'message': _contactMessageController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isSubmittingContact = false);
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _isSubmittingContact = false;
