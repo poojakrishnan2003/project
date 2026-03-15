@@ -468,39 +468,51 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> with SingleTicker
               final userId = allUsers[index];
               final isEditor = trip.editorIds.contains(userId);
               
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: primary.withValues(alpha: 0.1),
-                  child: const Icon(Icons.person),
-                ),
-                title: Text('User $userId', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  trip.pendingCompanionIds.contains(userId) || trip.pendingEditorIds.contains(userId)
-                      ? 'Pending Invite'
-                      : isEditor ? 'Can Edit' : 'Can View',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12, 
-                    color: trip.pendingCompanionIds.contains(userId) || trip.pendingEditorIds.contains(userId) ? Colors.orange : null
-                  )
-                ),
-                trailing: isOwner ? PopupMenuButton<String>(
-                  onSelected: (val) {
-                    if (val == 'remove') {
-                      // TODO: Implement remove
-                    } else if (val == 'make_editor') {
-                      // TODO: Implement role change
-                    } else if (val == 'make_viewer') {
-                      // TODO: Implement role change
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (isEditor)
-                      const PopupMenuItem(value: 'make_viewer', child: Text('Change to Viewer'))
-                    else
-                      const PopupMenuItem(value: 'make_editor', child: Text('Change to Editor')),
-                    const PopupMenuItem(value: 'remove', child: Text('Remove from Trip', style: TextStyle(color: Colors.red))),
-                  ],
-                ) : null,
+              return FutureBuilder<UserProfile?>(
+                future: _userService.getUserProfile(userId),
+                builder: (context, snapshot) {
+                  final userName = snapshot.data?.name ?? 'User $userId';
+                  
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: primary.withValues(alpha: 0.1),
+                      backgroundImage: snapshot.data?.photoUrl != null 
+                          ? NetworkImage(snapshot.data!.photoUrl!) 
+                          : null,
+                      child: snapshot.data?.photoUrl == null 
+                          ? const Icon(Icons.person) 
+                          : null,
+                    ),
+                    title: Text(userName, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    subtitle: Text(
+                      trip.pendingCompanionIds.contains(userId) || trip.pendingEditorIds.contains(userId)
+                          ? 'Pending Invite'
+                          : isEditor ? 'Can Edit' : 'Can View',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12, 
+                        color: trip.pendingCompanionIds.contains(userId) || trip.pendingEditorIds.contains(userId) ? Colors.orange : null
+                      )
+                    ),
+                    trailing: isOwner ? PopupMenuButton<String>(
+                      onSelected: (val) {
+                        if (val == 'remove') {
+                          // TODO: Implement remove
+                        } else if (val == 'make_editor') {
+                          // TODO: Implement role change
+                        } else if (val == 'make_viewer') {
+                          // TODO: Implement role change
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        if (isEditor)
+                          const PopupMenuItem(value: 'make_viewer', child: Text('Change to Viewer'))
+                        else
+                          const PopupMenuItem(value: 'make_editor', child: Text('Change to Editor')),
+                        const PopupMenuItem(value: 'remove', child: Text('Remove from Trip', style: TextStyle(color: Colors.red))),
+                      ],
+                    ) : null,
+                  );
+                },
               );
             },
           ),
