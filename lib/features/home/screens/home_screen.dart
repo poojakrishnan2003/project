@@ -17,6 +17,7 @@ import 'package:roamly/features/companions/screens/find_companion_screen.dart';
 import 'package:roamly/features/shared/widgets/profile_image_widget.dart';
 import 'package:roamly/features/profile/screens/profile_screen.dart';
 import 'package:roamly/features/profile/screens/settings_screen.dart';
+import 'package:roamly/features/profile/screens/help_feedback_screen.dart';
 
 /// Home screen with map view and mark spot feature
 class HomeScreen extends StatefulWidget {
@@ -569,6 +570,10 @@ class AppDrawer extends StatelessWidget {
             title: Text('Help & Feedback', style: textStyle),
             onTap: () {
               Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HelpFeedbackScreen()),
+              );
             },
           ),
           const Divider(),
