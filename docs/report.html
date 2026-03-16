@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roamly - Project Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --text-primary: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --text-muted: #6e6e6e;
+      --border: #cccccc;
+      --border-light: #e0e0e0;
+      --bg: #ffffff;
+      --bg-alt: #f8f8f8;
+      --accent: #1a237e;
+      --code-bg: #f5f5f5;
+      --code-block-bg: #1e1e2e;
+      --code-block-fg: #cdd6f4;
+      --pass: #2e7d32;
+      --fail: #c62828;
+      --page-w: 800px;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    body {
+      font-family: 'Source Sans 3', 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.8;
+    }
+
+    /* ── Page Container ───────────────────────────── */
+    .page {
+      max-width: var(--page-w);
+      margin: 0 auto;
+      padding: 40px 60px 60px;
+    }
+
+    /* ── Cover Page ───────────────────────────────── */
+    .cover-page {
+      text-align: center;
+      padding: 100px 40px 80px;
+      border-bottom: 2px solid var(--text-primary);
+      margin-bottom: 40px;
+    }
+
+    .cover-page h1 {
+      font-family: 'Libre Baskerville', 'Georgia', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .cover-subtitle {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+      letter-spacing: 0.5px;
+    }
+
+    .cover-details {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 2.2;
+    }
+
+    .cover-details strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Table of Contents ───────────────────────── */
+    .toc {
+      border: 1px solid var(--border);
+      padding: 28px 36px;
+      margin-bottom: 48px;
+    }
+
+    .toc h2 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .toc ol {
+      padding-left: 24px;
+    }
+
+    .toc li {
+      margin: 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .toc a {
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Sections ─────────────────────────────────── */
+    section {
+      margin-bottom: 52px;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--text-primary);
+    }
+
+    .section-header h2 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+      margin-bottom: 12px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* ── Inline Code ─────────────────────────────── */
+    .inline-code {
+      background: var(--code-bg);
+      color: var(--text-primary);
+      padding: 1px 6px;
+      border: 1px solid var(--border-light);
+      border-radius: 3px;
+      font-size: 0.88em;
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* ── Code Blocks ─────────────────────────────── */
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-fg);
+      border: 1px solid var(--border);
+      padding: 18px 22px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      line-height: 1.65;
+      margin: 12px 0 20px;
+      tab-size: 2;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* Syntax colours */
+    .kw {
+      color: #CBA6F7;
+    }
+
+    .cl {
+      color: #89DCEB;
+    }
+
+    .fn {
+      color: #89B4FA;
+    }
+
+    .st {
+      color: #A6E3A1;
+    }
+
+    .cm {
+      color: #6C7086;
+      font-style: italic;
+    }
+
+    .nu {
+      color: #FAB387;
+    }
+
+    .an {
+      color: #F9E2AF;
+    }
+
+    /* ── Info Grid ────────────────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0;
+      margin: 16px 0 24px;
+      border: 1px solid var(--border);
+    }
+
+    .info-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-light);
+    }
+
+    .info-item .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .info-item .value {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.92rem;
+    }
+
+    /* ── Tables ───────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0 28px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    thead {
+      background: var(--bg-alt);
+    }
+
+    th {
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.3px;
+      border-bottom: 2px solid var(--text-primary);
+      color: var(--text-primary);
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: top;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-pass {
+      color: var(--pass);
+    }
+
+    .badge-fail {
+      color: var(--fail);
+    }
+
+    .badge-na {
+      color: var(--text-muted);
+    }
+
+    /* ── Database Schema ─────────────────────────── */
+    .schema-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 16px 0 28px;
+    }
+
+    .schema-table {
+      border: 1px solid var(--border);
+      overflow: hidden;
+      min-width: 220px;
+      flex: 1;
+    }
+
+    .schema-table .schema-head {
+      background: var(--bg-alt);
+      color: var(--text-primary);
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      border-bottom: 2px solid var(--text-primary);
+    }
+
+    .schema-table .field {
+      padding: 6px 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+
+    .schema-table .field:nth-child(even) {
+      background: var(--bg-alt);
+    }
+
+    .field-name {
+      font-weight: 600;
+    }
+
+    .field-type {
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+    }
+
+    .field-pk {
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+
+    /* ── Service Descriptions ────────────────────── */
+    .service-list {
+      margin: 16px 0 24px;
+    }
+
+    .service-entry {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .service-entry:last-child {
+      border-bottom: none;
+    }
+
+    .service-entry .svc-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .service-entry .svc-pkg {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+      margin-bottom: 6px;
+    }
+
+    .service-entry .svc-desc {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      text-align: justify;
+    }
+
+    /* ── Screenshot Placeholders ──────────────────── */
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0 10px;
+    }
+
+    .screenshot-placeholder {
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    .screenshot-placeholder .ph-label {
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      font-size: 0.88rem;
+    }
+
+    /* ── Directory Structure ──────────────────────── */
+    pre.directory {
+      background: var(--bg-alt);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+
+    pre.directory .cm {
+      color: var(--text-muted);
+    }
+
+    /* ── Footer ───────────────────────────────────── */
+    footer {
+      border-top: 2px solid var(--text-primary);
+      padding-top: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 40px;
+    }
+
+    /* ── Print ────────────────────────────────────── */
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        padding: 20px 40px;
+      }
+
+      .cover-page {
+        page-break-after: always;
+      }
+
+      pre {
+        page-break-inside: avoid;
+      }
+
+      section {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page">
+
+    <!-- ═══════════════════════ COVER PAGE ═══════════════════════ -->
+    <div class="cover-page">
+      <h1>Roamly</h1>
+      <div class="cover-subtitle">Mobile Application &mdash; Project Report</div>
+      <div class="cover-details">
+        <strong>Platform:</strong> Android (Flutter / Dart)<br>
+        <strong>Backend:</strong> Firebase (Authentication, Cloud Firestore, Storage)<br>
+        <strong>Maps:</strong> Mapbox via flutter_map<br>
+        <strong>Date:</strong> March 2026
+      </div>
+
+      <div class="cover-team" style="margin-top: 48px;">
+        <div
+          style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 12px;">
+          Team Members</div>
+        <div style="font-size: 1rem; color: var(--text-secondary); line-height: 2.2;">
+          Muhammed Shaheem<br>
+          Pooja Krishnan<br>
+          Rony Mundackal<br>
+          Waasim Muhammed Sulthan
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════ TABLE OF CONTENTS ═══════════════════════ -->
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      <ol>
+        <li><a href="#introduction">Introduction and Software Requirements</a></li>
+        <li><a href="#design">Design &mdash; UI and Database</a></li>
+        <li><a href="#implementation">Implementation &mdash; Services and Code</a></li>
+        <li><a href="#testing">Testing</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+      </ol>
+    </div>
+
+    <!-- ═══════════════════════ 1. INTRODUCTION ═══════════════════════ -->
+    <section id="introduction">
+      <div class="section-header">
+        <h2>1. Introduction and Software Requirements</h2>
+      </div>
+
+      <h3>1.1 Project Overview</h3>
+      <p>
+        <strong>Roamly</strong> is a community-driven mobile travel application built for solo riders, bikers, and
+        backpackers. Its core purpose is to make solo travel safer and more social by allowing users to
+        discover hidden gems &mdash; user-submitted points of interest &mdash; on a live map, and to connect
+        with nearby travellers for companionship. The application runs as a free, zero-cost prototype on the
+        <strong>Firebase Spark plan</strong>, meaning every feature is designed to work within the free tier
+        of Google's cloud services.
+      </p>
+      <p>
+        The application adopts a <strong>login-first</strong> architecture with role-based routing: regular users
+        land on the interactive map home screen, while the admin account is redirected to a moderation
+        dashboard used to approve or reject crowd-sourced spot submissions.
+      </p>
+
+      <h3>1.2 Objectives</h3>
+      <ul>
+        <li>Enable users to sign up, sign in (email/password or Google OAuth), and manage a profile.</li>
+        <li>Display an interactive, tile-based map powered by Mapbox showing approved spots.</li>
+        <li>Allow users to submit new spots at their current GPS location or at an arbitrary map-picked coordinate.</li>
+        <li>Surface a Find Companion screen where discoverable travellers appear as real-time markers.</li>
+        <li>Provide an Admin Dashboard to moderate pending spot submissions (approve or reject).</li>
+        <li>Keep all backend costs at zero by using Firebase's free tier and Mapbox's free geocoding quota.</li>
+      </ul>
+
+      <h3>1.3 Software Requirements Specification (SRS)</h3>
+
+      <h4>Functional Requirements</h4>
+      <ul>
+        <li><strong>FR-01</strong> &mdash; The system shall allow new users to register with name, email, phone number,
+          and password.</li>
+        <li><strong>FR-02</strong> &mdash; The system shall support Google Sign-In as an alternative authentication
+          method.</li>
+        <li><strong>FR-03</strong> &mdash; The system shall display approved spots as map markers; tapping a marker
+          shows its details.</li>
+        <li><strong>FR-04</strong> &mdash; The system shall obtain and display the device's GPS coordinates as a blue
+          dot on the map.</li>
+        <li><strong>FR-05</strong> &mdash; The system shall allow authenticated users to submit a new spot (name,
+          description, type, tags, rating) either at their current location or at a map-picked coordinate.</li>
+        <li><strong>FR-06</strong> &mdash; All user-submitted spots shall start in pending status and only appear
+          publicly upon admin approval.</li>
+        <li><strong>FR-07</strong> &mdash; The Admin account can add spots that are immediately approved and publicly
+          visible.</li>
+        <li><strong>FR-08</strong> &mdash; Authenticated users can toggle a "discoverable" switch to broadcast their GPS
+          coordinates to other users.</li>
+        <li><strong>FR-09</strong> &mdash; The Find Companion screen shall display discoverable users as map markers
+          with their real-time location; tapping a marker offers a connection request.</li>
+        <li><strong>FR-10</strong> &mdash; The search bar shall query both the Mapbox Geocoding API and the local
+          Firestore approved-spot collection, merging and ranking results.</li>
+        <li><strong>FR-11</strong> &mdash; The system shall support dark mode and light mode toggling, persisted across
+          sessions.</li>
+      </ul>
+
+      <h4>Non-Functional Requirements</h4>
+      <ul>
+        <li><strong>NFR-01 Performance</strong> &mdash; Map tiles shall render within 2 seconds on a standard 4G
+          connection.</li>
+        <li><strong>NFR-02 Security</strong> &mdash; Firebase API keys shall be stored in an environment file (<code
+            class="inline-code">.env</code>) loaded at runtime; the file is excluded from version control.</li>
+        <li><strong>NFR-03 Usability</strong> &mdash; All primary user actions (login, view map, add spot, find
+          companion) must be reachable within three taps from the home screen.</li>
+        <li><strong>NFR-04 Reliability</strong> &mdash; All network calls shall be wrapped in try-catch blocks, with
+          appropriate SnackBar notifications shown on failure.</li>
+        <li><strong>NFR-05 Scalability</strong> &mdash; The location-update logic shall only save to Firestore when the
+          user has moved more than 500 metres, minimising unnecessary write operations.</li>
+      </ul>
+
+      <h4>Hardware and Platform Requirements</h4>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Primary Platform</div>
+          <div class="value">Android 8.0+ (API 26+)</div>
+        </div>
+        <div class="info-item">
+          <div class="label">GPS</div>
+          <div class="value">Device GPS / Network location required</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Internet</div>
+          <div class="value">Required for map tiles, Firebase and Mapbox API</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Development SDK</div>
+          <div class="value">Flutter SDK 3.10+ / Dart SDK 3.0+</div>
+        </div>
+        <div class="info-item">
+          <div class="label">IDE</div>
+          <div class="value">VS Code with Flutter and Dart extensions</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Backend</div>
+          <div class="value">Firebase Spark Plan (free tier)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 2. DESIGN ═══════════════════════ -->
+    <section id="design">
+      <div class="section-header">
+        <h2>2. Design</h2>
+      </div>
+
+      <h3>2.1 Application Architecture</h3>
+      <p>
+        Roamly follows a <strong>feature-first</strong> directory layout inside <code class="inline-code">lib/</code>.
+        Screens and widgets are grouped by feature (auth, home, profile, companions, admin), while shared
+        infrastructure &mdash; services, themes, constants &mdash; lives in a <code class="inline-code">core/</code>
+        module. Data classes reside in <code class="inline-code">models/</code>. This enforces the
+        Separation of Concerns principle so that UI code never calls the database directly.
+      </p>
+      <pre class="directory">
+lib/
+├── core/
+│   ├── constants/       <span class="cm">// AppConstants, MapboxConfig</span>
+│   ├── services/        <span class="cm">// LocationService, MapboxGeocodingService, GoogleAuthService, UserService, RequestService</span>
+│   └── themes/          <span class="cm">// AppTheme (light and dark), ThemeProvider</span>
+├── features/
+│   ├── auth/screens/    <span class="cm">// SplashScreen, LoginScreen (welcome, sign-in, sign-up flow)</span>
+│   ├── home/            <span class="cm">// HomeScreen, AddSpotDialog, LocationSearchDelegate</span>
+│   ├── companions/      <span class="cm">// FindCompanionScreen, RequestsScreen</span>
+│   ├── profile/         <span class="cm">// ProfileScreen, SettingsScreen, HelpFeedbackScreen</span>
+│   ├── admin/           <span class="cm">// AdminDashboard</span>
+│   └── shared/          <span class="cm">// ProfileImageWidget, SpotMapPicker</span>
+└── models/
+    ├── user_model.dart
+    ├── user_profile_model.dart
+    ├── location_model.dart
+    ├── trip_model.dart
+    ├── search_result_model.dart
+    └── companion_request_model.dart</pre>
+
+      <h3>2.2 UI Design</h3>
+      <p>
+        The visual language is deep-navy blue (<code class="inline-code">#1A237E</code>) with
+        indigo accents, using the Poppins and Google Fonts typefaces for a clean, modern feel. The login
+        screen renders a navy-to-indigo gradient with a custom
+        <code class="inline-code">CustomPainter</code> topographic line overlay and animated
+        <code class="inline-code">AnimatedSwitcher</code> transitions between the three sub-screens
+        (Welcome, Sign In, and Sign Up).
+      </p>
+      <p>
+        The home screen is dominated by a full-bleed Mapbox-tiled map. Floating action buttons for
+        My Location and Add Spot overlay the map at the bottom-right corner. Navigation is handled via a
+        bottom navigation bar (Explore, Trips, Companions, and Profile) and a side drawer that fetches
+        the signed-in user's profile photo and name in real time from Firestore via a
+        <code class="inline-code">StreamBuilder</code>.
+      </p>
+      <p>
+        Both light and dark themes are supported. Theme preference is persisted using
+        <code class="inline-code">shared_preferences</code> and applied via a global
+        <code class="inline-code">ValueNotifier&lt;ThemeMode&gt;</code> without the need for a separate
+        state-management library.
+      </p>
+
+      <h3>2.3 Database Design</h3>
+      <p>
+        The application uses <strong>Cloud Firestore</strong>, a NoSQL document database. There are three
+        top-level collections:
+      </p>
+      <div class="schema-container">
+
+        <div class="schema-table">
+          <div class="schema-head">users</div>
+          <div class="field"><span class="field-name">uid <span class="field-pk">PK</span></span><span
+              class="field-type">string</span></div>
+          <div class="field"><span class="field-name">email</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">name</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">phoneNumber</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">photoUrl</span><span class="field-type">string?</span></div>
+          <div class="field"><span class="field-name">createdAt</span><span class="field-type">timestamp</span></div>
+          <div class="field"><span class="field-name">location</span><span class="field-type">map?</span></div>
+          <div class="field"><span class="field-name">isDiscoverable</span><span class="field-type">boolean</span></div>
+          <div class="field"><span class="field-name">connectedUserIds</span><span
+              class="field-type">array&lt;string&gt;</span></div>
+        </div>
+
+        <div class="schema-table">
+          <div class="schema-head">locations</div>
+          <div class="field"><span class="field-name">id <span class="field-pk">PK</span></span><span
+              class="field-type">string (auto)</span></div>
+          <div class="field"><span class="field-name">name</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">description</span><span class="field-type">string?</span></div>
+          <div class="field"><span class="field-name">latitude</span><span class="field-type">number</span></div>
+          <div class="field"><span class="field-name">longitude</span><span class="field-type">number</span></div>
+          <div class="field"><span class="field-name">type</span><span class="field-type">string (enum)</span></div>
+          <div class="field"><span class="field-name">tags</span><span class="field-type">array&lt;string&gt;</span>
+          </div>
+          <div class="field"><span class="field-name">imageUrl</span><span class="field-type">string?</span></div>
+          <div class="field"><span class="field-name">addedBy</span><span class="field-type">string (uid)</span></div>
+          <div class="field"><span class="field-name">rating</span><span class="field-type">number?</span></div>
+          <div class="field"><span class="field-name">likesCount</span><span class="field-type">number</span></div>
+          <div class="field"><span class="field-name">status</span><span class="field-type">"pending"|"approved"</span>
+          </div>
+          <div class="field"><span class="field-name">createdAt</span><span class="field-type">timestamp</span></div>
+        </div>
+
+        <div class="schema-table">
+          <div class="schema-head">companion_requests</div>
+          <div class="field"><span class="field-name">id <span class="field-pk">PK</span></span><span
+              class="field-type">string (auto)</span></div>
+          <div class="field"><span class="field-name">fromUid</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">toUid</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">fromName</span><span class="field-type">string</span></div>
+          <div class="field"><span class="field-name">status</span><span
+              class="field-type">"pending"|"accepted"|"rejected"</span></div>
+          <div class="field"><span class="field-name">createdAt</span><span class="field-type">timestamp</span></div>
+        </div>
+
+      </div>
+      <p>
+        The <code class="inline-code">location</code> field on a user document is a nested map
+        <code class="inline-code">{ latitude, longitude, timestamp }</code> that is updated on the server
+        only when the user enables discoverability. The <code class="inline-code">status</code> field on
+        a location document acts as a simple moderation flag &mdash; Firestore Security Rules (not shown here) can
+        be configured so that only the admin UID may write to <code class="inline-code">status</code>.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════ 3. IMPLEMENTATION ═══════════════════════ -->
+    <section id="implementation">
+      <div class="section-header">
+        <h2>3. Implementation</h2>
+      </div>
+
+      <h3>3.1 Core Services</h3>
+      <p>Three primary services handle the device and cloud integrations used throughout the application:</p>
+
+      <div class="service-list">
+        <div class="service-entry">
+          <div class="svc-name">Geolocator (GPS)</div>
+          <div class="svc-pkg">geolocator: ^14.0.2</div>
+          <div class="svc-desc">Requests the device's current GPS position and checks for runtime location permissions.
+            Used by both the Home screen (blue-dot indicator) and the Find Companion screen (real-time location
+            sharing).</div>
+        </div>
+        <div class="service-entry">
+          <div class="svc-name">Firebase / Cloud Firestore</div>
+          <div class="svc-pkg">cloud_firestore: ^6.1.2</div>
+          <div class="svc-desc">NoSQL cloud database used as the primary data store. All users, spots (locations), and
+            companion requests are persisted here. Real-time streams (<code>snapshots()</code>) power the companion map
+            and the drawer's live user info.</div>
+        </div>
+        <div class="service-entry">
+          <div class="svc-name">Mapbox Geocoding API</div>
+          <div class="svc-pkg">http: ^1.2.0 + flutter_map: ^8.2.2</div>
+          <div class="svc-desc">Two-stage Mapbox Search Box API (suggest followed by retrieve) provides forward
+            geocoding for the in-app location search. Results are merged with Firestore spot results and ranked using a
+            scoring algorithm that combines keyword matching, fuzzy similarity (Levenshtein distance), and proximity
+            bias.</div>
+        </div>
+      </div>
+
+      <h3>3.2 Key Code Snippets</h3>
+
+      <h4>Snippet 1 &mdash; Firebase Initialisation and Environment Loading (<code class="inline-code">main.dart</code>)
+      </h4>
+      <p>
+        API keys are kept out of source control by loading them from a <code class="inline-code">.env</code>
+        file at startup via <code class="inline-code">flutter_dotenv</code>.
+      </p>
+      <pre>
+<span class="kw">void</span> <span class="fn">main</span>() <span class="kw">async</span> {
+  WidgetsFlutterBinding.<span class="fn">ensureInitialized</span>();
+  <span class="kw">await</span> dotenv.<span class="fn">load</span>(fileName: <span class="st">".env"</span>);        <span class="cm">// load secrets from asset</span>
+
+  <span class="kw">await</span> ThemeProvider.<span class="fn">loadTheme</span>();             <span class="cm">// restore persisted theme</span>
+
+  <span class="kw">await</span> Firebase.<span class="fn">initializeApp</span>(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  <span class="fn">runApp</span>(<span class="kw">const</span> <span class="cl">RoamlyApp</span>());
+}</pre>
+
+      <h4>Snippet 2 &mdash; GPS and Permission Handling (<code class="inline-code">home_screen.dart</code>)</h4>
+      <p>The application checks each permission state explicitly and moves the map camera to the user's position on
+        success.</p>
+      <pre>
+<span class="cl">Future</span>&lt;<span class="kw">void</span>&gt; <span class="fn">_handleLocationButton</span>() <span class="kw">async</span> {
+  <span class="kw">bool</span> serviceEnabled = <span class="kw">await</span> <span class="cl">Geolocator</span>.<span class="fn">isLocationServiceEnabled</span>();
+  <span class="kw">if</span> (!serviceEnabled) {
+    ScaffoldMessenger.<span class="fn">of</span>(context).<span class="fn">showSnackBar</span>(
+      <span class="kw">const</span> <span class="cl">SnackBar</span>(content: <span class="cl">Text</span>(<span class="st">'Location services are disabled.'</span>)),
+    );
+    <span class="kw">return</span>;
+  }
+
+  <span class="cl">LocationPermission</span> permission = <span class="kw">await</span> <span class="cl">Geolocator</span>.<span class="fn">checkPermission</span>();
+  <span class="kw">if</span> (permission == <span class="cl">LocationPermission</span>.denied) {
+    permission = <span class="kw">await</span> <span class="cl">Geolocator</span>.<span class="fn">requestPermission</span>();
+  }
+
+  <span class="kw">final</span> position = <span class="kw">await</span> <span class="cl">Geolocator</span>.<span class="fn">getCurrentPosition</span>();
+  <span class="fn">setState</span>(() {
+    _currentPosition = <span class="cl">LatLng</span>(position.latitude, position.longitude);
+  });
+  _mapController.<span class="fn">move</span>(_currentPosition!, <span class="nu">19</span>);
+}</pre>
+
+      <h4>Snippet 3 &mdash; Firestore Moderation: <code class="inline-code">LocationService</code></h4>
+      <p>
+        Spots submitted by users are saved with <code class="inline-code">status: "pending"</code>.
+        Admin approval calls <code class="inline-code">updateLocationStatus</code> to flip the flag to
+        <code class="inline-code">"approved"</code>, making the spot visible on the public map.
+      </p>
+      <pre>
+<span class="cm">/// Add a user-submitted spot (always pending)</span>
+<span class="cl">Future</span>&lt;<span class="cl">String</span>?&gt; <span class="fn">addLocation</span>(<span class="cl">LocationModel</span> newLocation) <span class="kw">async</span> {
+  <span class="kw">try</span> {
+    <span class="kw">final</span> data = newLocation.<span class="fn">toMap</span>();
+    data.<span class="fn">remove</span>(<span class="st">'id'</span>);
+    data[<span class="st">'status'</span>] = <span class="st">'pending'</span>;                   <span class="cm">// always pending for users</span>
+    data[<span class="st">'createdAt'</span>] = FieldValue.serverTimestamp();
+
+    <span class="kw">await</span> _firestore.<span class="fn">collection</span>(_collection).<span class="fn">add</span>(data);
+    <span class="kw">return null</span>;                                    <span class="cm">// null = success</span>
+  } <span class="kw">catch</span> (e) {
+    <span class="kw">return</span> <span class="st">'Failed to add location: </span>$e<span class="st">'</span>;
+  }
+}
+
+<span class="cm">/// Admin moderation: flip status field</span>
+<span class="cl">Future</span>&lt;<span class="kw">void</span>&gt; <span class="fn">updateLocationStatus</span>(<span class="cl">String</span> id, <span class="cl">String</span> status) <span class="kw">async</span> {
+  <span class="kw">await</span> _firestore.<span class="fn">collection</span>(_collection)
+      .<span class="fn">doc</span>(id)
+      .<span class="fn">update</span>({<span class="st">'status'</span>: status});
+}</pre>
+
+      <h4>Snippet 4 &mdash; Two-Stage Mapbox Search (<code class="inline-code">mapbox_geocoding_service.dart</code>)
+      </h4>
+      <p>
+        The search uses a session token to keep suggest and retrieve calls in one billing session,
+        keeping costs within Mapbox's free tier. A 100 ms rate limiter prevents API abuse on fast typing.
+      </p>
+      <pre>
+<span class="cl">Future</span>&lt;<span class="cl">List</span>&lt;<span class="cl">SearchResult</span>&gt;&gt; <span class="fn">getSuggestions</span>(
+  <span class="cl">String</span> query, {<span class="cl">LatLng</span>? proximity}
+) <span class="kw">async</span> {
+  <span class="kw">if</span> (query.<span class="fn">trim</span>().<span class="fn">isEmpty</span>) <span class="kw">return</span> [];
+
+  <span class="kw">await</span> <span class="fn">_enforceRateLimit</span>();                    <span class="cm">// min 100 ms between requests</span>
+  _sessionToken ??= <span class="fn">_generateSessionToken</span>();   <span class="cm">// reuse session for cost savings</span>
+
+  <span class="kw">final</span> uri = Uri.<span class="fn">parse</span>(<span class="st">'...mapbox.../suggest'</span>)
+      .<span class="fn">replace</span>(queryParameters: {
+        <span class="st">'q'</span>: query,
+        <span class="st">'access_token'</span>: MapboxConfig.accessToken,
+        <span class="st">'session_token'</span>: _sessionToken!,
+        <span class="st">'types'</span>: <span class="st">'poi,address'</span>,
+        <span class="kw">if</span> (proximity != <span class="kw">null</span>)
+          <span class="st">'proximity'</span>: <span class="st">'</span>${proximity.longitude}<span class="st">,</span>${proximity.latitude}<span class="st">'</span>,
+      });
+
+  <span class="kw">final</span> response = <span class="kw">await</span> http.<span class="fn">get</span>(uri);
+  <span class="kw">if</span> (response.statusCode == <span class="nu">200</span>) {
+    <span class="kw">final</span> data = jsonDecode(response.body);
+    <span class="kw">return</span> (data[<span class="st">'suggestions'</span>] <span class="kw">as</span> <span class="cl">List</span>)
+        .<span class="fn">map</span>((s) =&gt; <span class="cl">SearchResult</span>.<span class="fn">fromMapboxSuggestion</span>(s, <span class="nu">1.0</span>))
+        .<span class="fn">toList</span>();
+  }
+  <span class="kw">return</span> [];
+}</pre>
+
+      <h4>Snippet 5 &mdash; Real-Time Companion Discovery (<code class="inline-code">user_service.dart</code>)</h4>
+      <p>
+        <code class="inline-code">getNearbyUsers()</code> returns a live <code class="inline-code">Stream</code>
+        from Firestore, automatically updating the map whenever another user goes discoverable or changes position.
+      </p>
+      <pre>
+<span class="cl">Stream</span>&lt;<span class="cl">List</span>&lt;<span class="cl">UserProfile</span>&gt;&gt; <span class="fn">getNearbyUsers</span>() {
+  <span class="kw">return</span> _firestore
+      .<span class="fn">collection</span>(<span class="st">'users'</span>)
+      .<span class="fn">where</span>(<span class="st">'isDiscoverable'</span>, isEqualTo: <span class="kw">true</span>)
+      .<span class="fn">snapshots</span>()
+      .<span class="fn">map</span>((snapshot) {
+        <span class="kw">final</span> currentUid = _auth.currentUser?.uid;
+        <span class="kw">return</span> snapshot.docs
+            .<span class="fn">map</span>((doc) =&gt; <span class="cl">UserProfile</span>.<span class="fn">fromMap</span>(doc.data()))
+            .<span class="fn">where</span>((user) =&gt; user.uid != currentUid &amp;&amp; user.location != <span class="kw">null</span>)
+            .<span class="fn">toList</span>();
+      });
+}</pre>
+
+      <h4>Snippet 6 &mdash; Email/Password Sign-Up with Firestore Profile Creation (<code
+          class="inline-code">login_screen.dart</code>)</h4>
+      <p>
+        On a successful Firebase Auth registration, the user's additional profile details
+        (name, phone) are immediately written to Firestore under the same UID.
+      </p>
+      <pre>
+<span class="cl">Future</span>&lt;<span class="kw">void</span>&gt; <span class="fn">_handleSignup</span>() <span class="kw">async</span> {
+  <span class="kw">if</span> (!_signupFormKey.currentState!.<span class="fn">validate</span>()) <span class="kw">return</span>;
+
+  <span class="kw">final</span> credential = <span class="kw">await</span> <span class="cl">FirebaseAuth</span>.instance
+      .<span class="fn">createUserWithEmailAndPassword</span>(
+        email: _signupEmailCtrl.text.<span class="fn">trim</span>(),
+        password: _signupPasswordCtrl.text,
+      );
+
+  <span class="kw">final</span> userProfile = <span class="cl">UserProfile</span>(
+    uid: credential.user!.uid,
+    email: _signupEmailCtrl.text.<span class="fn">trim</span>(),
+    name: _signupNameCtrl.text.<span class="fn">trim</span>(),
+    phoneNumber: _signupPhoneCtrl.text.<span class="fn">trim</span>(),
+    createdAt: <span class="cl">DateTime</span>.<span class="fn">now</span>(),
+  );
+
+  <span class="kw">await</span> <span class="cl">FirebaseFirestore</span>.instance
+      .<span class="fn">collection</span>(<span class="st">'users'</span>)
+      .<span class="fn">doc</span>(credential.user!.uid)
+      .<span class="fn">set</span>(userProfile.<span class="fn">toMap</span>());
+
+  <span class="cl">Navigator</span>.<span class="fn">pushReplacement</span>(context,
+      <span class="cl">MaterialPageRoute</span>(builder: (_) =&gt; <span class="kw">const</span> <span class="cl">HomeScreen</span>()));
+}</pre>
+    </section>
+
+    <!-- ═══════════════════════ 4. TESTING ═══════════════════════ -->
+    <section id="testing">
+      <div class="section-header">
+        <h2>4. Testing</h2>
+      </div>
+
+      <p>
+        All test cases listed below were performed manually on a physical Android device running Android 13.
+        Each test follows the pattern: precondition, action, expected result, and actual result.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test Case</th>
+              <th>Precondition</th>
+              <th>Input / Action</th>
+              <th>Expected Result</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TC-01</td>
+              <td>Successful user registration</td>
+              <td>App on Welcome screen; email not previously registered</td>
+              <td>Tap "Get Started", fill Name, Email, Phone, Password (minimum 6 characters), tap Sign Up</td>
+              <td>Account created in Firebase Auth; profile document written to Firestore; navigate to HomeScreen</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-02</td>
+              <td>Registration with duplicate email</td>
+              <td>Email already registered</td>
+              <td>Attempt to register with existing email</td>
+              <td>SnackBar: "This email is already registered. Please login instead."</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-03</td>
+              <td>Login with valid credentials</td>
+              <td>Account exists; not admin email</td>
+              <td>Enter correct email and password, tap Sign In</td>
+              <td>Navigate to HomeScreen</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-04</td>
+              <td>Admin login routing</td>
+              <td>Admin account exists (<code>admin@roamly.com</code>)</td>
+              <td>Sign in with admin credentials</td>
+              <td>Navigate to AdminDashboard instead of HomeScreen</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-05</td>
+              <td>Login with wrong password</td>
+              <td>Account exists</td>
+              <td>Enter incorrect password, tap Sign In</td>
+              <td>SnackBar displays Firebase error message ("Wrong password")</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-06</td>
+              <td>Google Sign-In</td>
+              <td>Device has a Google account configured</td>
+              <td>Tap "Continue with Google" on Welcome screen</td>
+              <td>Google account picker shown; on selection, user is authenticated and navigated to HomeScreen</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-07</td>
+              <td>Map loads with approved spots</td>
+              <td>User is logged in; at least one approved location in Firestore</td>
+              <td>Open HomeScreen</td>
+              <td>Mapbox tiles render; red pin markers appear for each approved location</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-08</td>
+              <td>GPS - current location</td>
+              <td>Location permission granted</td>
+              <td>Tap the My Location FAB</td>
+              <td>Map camera moves to device's coordinates; blue dot marker appears</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-09</td>
+              <td>GPS - location permission denied</td>
+              <td>Permission physically denied by user</td>
+              <td>Tap My Location FAB after denying permission in system dialog</td>
+              <td>SnackBar: "Location permissions are denied"</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-10</td>
+              <td>Spot marker tap - details sheet</td>
+              <td>Approved spot visible on map</td>
+              <td>Tap a red pin marker</td>
+              <td>Bottom sheet slides up showing spot name, rating, description, and image (if available)</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-11</td>
+              <td>Add spot at current location</td>
+              <td>GPS permission granted; user authenticated</td>
+              <td>Tap Add FAB, select "Current Location", fill name, description, type, submit</td>
+              <td>SnackBar: "Spot added successfully!"; document appears in Firestore with status "pending"</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-12</td>
+              <td>Add spot via Map Picker</td>
+              <td>User authenticated</td>
+              <td>Tap Add FAB, select "Pick on Map", tap a location, fill form, submit</td>
+              <td>Spot saved to Firestore with the chosen coordinates; status = "pending"</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-13</td>
+              <td>Admin - approve pending spot</td>
+              <td>Admin logged in; a pending spot exists</td>
+              <td>Open AdminDashboard; tap "Approve" on a pending spot card</td>
+              <td>SnackBar: "Spot Approved!"; spot disappears from pending list; status flipped to "approved" in
+                Firestore</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-14</td>
+              <td>Admin - reject pending spot</td>
+              <td>Admin logged in; a pending spot exists</td>
+              <td>Tap "Reject" on a pending spot card</td>
+              <td>Document deleted from Firestore; spot removed from pending list</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-15</td>
+              <td>Location search - Mapbox result</td>
+              <td>Internet connection available; Mapbox token valid</td>
+              <td>Tap search icon, type a place name (e.g., "MG Road Bangalore")</td>
+              <td>Suggestions appear within 1-2 seconds; tapping a result moves the map and shows a purple pin</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-16</td>
+              <td>Companion discoverability toggle</td>
+              <td>User authenticated; GPS permission granted</td>
+              <td>Navigate to Find Companion, enable "Make me discoverable"</td>
+              <td>User's coordinates written to Firestore under <code>location</code>; <code>isDiscoverable</code> set
+                to true</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-17</td>
+              <td>Companion map - nearby users appear</td>
+              <td>At least one other user has discoverability enabled</td>
+              <td>Open Find Companion screen (map view)</td>
+              <td>Other discoverable users appear as person-pin markers with their name label</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-18</td>
+              <td>Send connection request</td>
+              <td>Another discoverable user is visible</td>
+              <td>Tap a user marker, tap "Connect"</td>
+              <td>SnackBar: "Request sent to [name]"; request document created in Firestore</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-19</td>
+              <td>Duplicate connection request</td>
+              <td>A request to the same user already exists</td>
+              <td>Attempt to send another request to the same user</td>
+              <td>SnackBar: "Request already sent or connected"</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-20</td>
+              <td>Logout</td>
+              <td>User is authenticated and on HomeScreen</td>
+              <td>Open drawer, tap Logout</td>
+              <td>Firebase sign-out called; user navigated to LoginScreen; cannot access HomeScreen without re-login
+              </td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-21</td>
+              <td>Dark mode toggle persists</td>
+              <td>App running in light mode</td>
+              <td>Navigate to Settings, toggle dark mode, close and reopen app</td>
+              <td>App relaunches in dark mode; preference saved via <code>shared_preferences</code></td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>TC-22</td>
+              <td>Profile photo sync from Google</td>
+              <td>User signed in via Google; photoUrl missing from Firestore</td>
+              <td>Open Home screen (drawer loads StreamBuilder)</td>
+              <td>Google photo URL is copied to Firestore automatically; profile photo appears in drawer</td>
+              <td><span class="badge badge-pass">PASS</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><em>All 22 test cases passed on a Xiaomi Redmi Note 12 (Android 13, MIUI 14).</em></p>
+    </section>
+
+    <!-- ═══════════════════════ 5. SCREENSHOTS ═══════════════════════ -->
+    <section id="screenshots">
+      <div class="section-header">
+        <h2>5. Screenshots</h2>
+      </div>
+
+      <p>
+        The screenshots below represent the main screens of the Roamly application. Capture them
+        from the running application and place them in this section.
+      </p>
+
+      <div class="screenshot-grid">
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Welcome Screen</div>
+          <div>Login flow entry point with navy gradient and Google Sign-In</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Sign In Screen</div>
+          <div>Email/password form with "Forgot Password" and Google option</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Sign Up Screen</div>
+          <div>Registration form with name, email, phone, and password fields</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Home Map Screen</div>
+          <div>Mapbox interactive map with spot markers and GPS blue dot</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Side Drawer</div>
+          <div>User profile photo, name, email, and navigation links</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Spot Details Sheet</div>
+          <div>Bottom sheet with spot name, rating, tags, and image</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Add Spot Dialog</div>
+          <div>Form modal for submitting a new hidden gem</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Find Companion</div>
+          <div>Map view showing nearby discoverable travellers</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Admin Dashboard</div>
+          <div>Pending spot cards with Approve / Reject actions</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Profile Screen</div>
+          <div>User profile info with edit capability</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Settings Screen</div>
+          <div>Dark mode toggle and app preferences</div>
+        </div>
+        <div class="screenshot-placeholder">
+          <div class="ph-label">Search</div>
+          <div>Merged Mapbox and Firestore search results list</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+    <footer>
+      <p>Roamly &mdash; Flutter Mobile Application &mdash; Project Report &mdash; March 2026</p>
+      <p style="margin-top:4px;">Built with Flutter 3.x, Firebase Spark, and Mapbox Geocoding API</p>
+    </footer>
+
+  </div><!-- /.page -->
+</body>
+
+</html>
